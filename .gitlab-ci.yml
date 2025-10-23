@@ -149,7 +149,7 @@ test_managementserver:
   stage: test
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - cd ManagementServer
+    - cd ManagementBackend
     - dotnet test || echo "No tests found."
   rules:
     - exists:
