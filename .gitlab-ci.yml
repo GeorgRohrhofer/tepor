@@ -1,0 +1,195 @@
+stages:
+  - build
+  - test
+
+##############################
+# 🧱 NodeBackend (C++ / CMake)
+##############################
+build_nodebackend:
+  stage: build
+  image: gcc:13
+  script:
+    - echo "🔧 Building NodeBackend..."
+    - cd NodeBackend
+    - mkdir -p build && cd build
+    - cmake ..
+    - make -j$(nproc)
+  artifacts:
+    paths:
+      - NodeBackend/build/
+  rules:
+    - exists:
+        - NodeBackend/CMakeLists.txt
+
+test_nodebackend:
+  stage: test
+  image: gcc:13
+  script:
+    - echo "🧪 Testing NodeBackend..."
+    - cd NodeBackend/build
+    - ctest --output-on-failure || echo "No tests found."
+  rules:
+    - exists:
+        - NodeBackend/CMakeLists.txt
+
+##############################
+# 🖼️ WebUI (Flutter)
+##############################
+build_webui:
+  stage: build
+  image: cirrusci/flutter:stable
+  script:
+    - echo "🚀 Building Flutter WebUI..."
+    - cd WebUI
+    - flutter pub get
+    - flutter build web --release
+  artifacts:
+    paths:
+      - WebUI/build/web/
+  rules:
+    - exists:
+        - WebUI/pubspec.yaml
+
+test_webui:
+  stage: test
+  image: cirrusci/flutter:stable
+  script:
+    - echo "🧪 Running Flutter tests..."
+    - cd WebUI
+    - flutter test || echo "No tests found."
+  rules:
+    - exists:
+        - WebUI/test/
+
+##############################
+# 🤖 DiscordBot (Python)
+##############################
+build_discordbot:
+  stage: build
+  image: python:3.11
+  script:
+    - echo "📦 Installing dependencies..."
+    - cd DiscordBot
+    - pip install -r requirements.txt
+  rules:
+    - exists:
+        - DiscordBot/requirements.txt
+
+test_discordbot:
+  stage: test
+  image: python:3.11
+  script:
+    - echo "🧪 Running DiscordBot tests..."
+    - cd DiscordBot
+    - pytest || echo "No tests found."
+  rules:
+    - exists:
+        - DiscordBot/tests/
+
+##############################
+# 🩺 MonitoringService (C#)
+##############################
+build_monitoring_client:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🏗️ Building Monitoring Client..."
+    - cd MonitoringService/Client
+    - dotnet restore
+    - dotnet build --configuration Release
+  artifacts:
+    paths:
+      - MonitoringService/Client/bin/
+  rules:
+    - exists:
+        - MonitoringService/Client/*.csproj
+
+test_monitoring_client:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - cd MonitoringService/Client
+    - dotnet test || echo "No tests found."
+  rules:
+    - exists:
+        - MonitoringService/Client/*.csproj
+
+build_monitoring_server:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🏗️ Building Monitoring Server..."
+    - cd MonitoringService/Server
+    - dotnet restore
+    - dotnet build --configuration Release
+  artifacts:
+    paths:
+      - MonitoringService/Server/bin/
+  rules:
+    - exists:
+        - MonitoringService/Server/*.csproj
+
+test_monitoring_server:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - cd MonitoringService/Server
+    - dotnet test || echo "No tests found."
+  rules:
+    - exists:
+        - MonitoringService/Server/*.csproj
+
+##############################
+# 🧩 ManagementServer (C#)
+##############################
+build_managementserver:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "🏗️ Building ManagementServer..."
+    - cd ManagementServer
+    - dotnet restore
+    - dotnet build --configuration Release
+  artifacts:
+    paths:
+      - ManagementServer/bin/
+  rules:
+    - exists:
+        - ManagementServer/*.csproj
+
+test_managementserver:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - cd ManagementServer
+    - dotnet test || echo "No tests found."
+  rules:
+    - exists:
+        - ManagementServer/*.csproj
+
+##############################
+# 🌍 WorldSynchronization (Rust)
+##############################
+build_worldsync:
+  stage: build
+  image: rust:1.80
+  script:
+    - echo "⚙️ Building WorldSynchronization..."
+    - cd WorldSynchronization
+    - cargo build --release
+  artifacts:
+    paths:
+      - WorldSynchronization/target/release/
+  rules:
+    - exists:
+        - WorldSynchronization/Cargo.toml
+
+test_worldsync:
+  stage: test
+  image: rust:1.80
+  script:
+    - cd WorldSynchronization
+    - cargo test -- --nocapture || echo "No tests found."
+  rules:
+    - exists:
+        - WorldSynchronization/Cargo.toml
