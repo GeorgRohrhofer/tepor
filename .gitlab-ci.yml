@@ -1,12 +1,24 @@
 stages:
-  - build
-  - test
+  - build-nodebackend
+  - test-nodebackend
+  - build-webui
+  - test-webui
+  - build-discordbot
+  - test-discordbot
+  - build-monitoringclient
+  - test-monitoringclient
+  - build-monitoringserver
+  - test-monitoringserver
+  - build-managementserver
+  - test-managementserver
+  - build-worldsync
+  - test-worldsync
 
 ##############################
 # 🧱 NodeBackend (C++ / CMake)
 ##############################
 build_nodebackend:
-  stage: build
+  stage: build-nodebackend
   image: gcc:13
   before_script:
     - apt-get update -qq
@@ -25,7 +37,7 @@ build_nodebackend:
         - NodeBackend/CMakeLists.txt
 
 test_nodebackend:
-  stage: test
+  stage: test-nodebackend
   image: gcc:13
   script:
     - echo "🧪 Testing NodeBackend..."
@@ -39,7 +51,7 @@ test_nodebackend:
 # 🖼️ WebUI (Flutter)
 ##############################
 build_webui:
-  stage: build
+  stage: build-webui
   image: cirrusci/flutter:stable
   script:
     - echo "🚀 Building Flutter WebUI..."
@@ -54,7 +66,7 @@ build_webui:
         - WebUI/pubspec.yaml
 
 test_webui:
-  stage: test
+  stage: test-webui
   image: cirrusci/flutter:stable
   script:
     - echo "🧪 Running Flutter tests..."
@@ -68,7 +80,7 @@ test_webui:
 # 🤖 DiscordBot (Python)
 ##############################
 build_discordbot:
-  stage: build
+  stage: build-discordbot
   image: python:3.11
   script:
     - echo "📦 Installing dependencies..."
@@ -79,7 +91,7 @@ build_discordbot:
         - DiscordBot/requirements.txt
 
 test_discordbot:
-  stage: test
+  stage: test-discordbot
   image: python:3.11
   script:
     - echo "🧪 Running DiscordBot tests..."
@@ -93,7 +105,7 @@ test_discordbot:
 # 🩺 MonitoringService (C#)
 ##############################
 build_monitoring_client:
-  stage: build
+  stage: build-monitoringclient
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - echo "🏗️ Building Monitoring Client..."
@@ -108,7 +120,7 @@ build_monitoring_client:
         - MonitoringService/Client/*.csproj
 
 test_monitoring_client:
-  stage: test
+  stage: test-monitoringclient
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - cd MonitoringService/Client
@@ -118,7 +130,7 @@ test_monitoring_client:
         - MonitoringService/Client/*.csproj
 
 build_monitoring_server:
-  stage: build
+  stage: build-monitoringserver
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - echo "🏗️ Building Monitoring Server..."
@@ -133,7 +145,7 @@ build_monitoring_server:
         - MonitoringService/Server/*.csproj
 
 test_monitoring_server:
-  stage: test
+  stage: test-monitoringclient
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - cd MonitoringService/Server
@@ -146,7 +158,7 @@ test_monitoring_server:
 # 🧩 ManagementServer (C#)
 ##############################
 build_managementserver:
-  stage: build
+  stage: build-managementserver
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - echo "🏗️ Building ManagementServer..."
@@ -161,7 +173,7 @@ build_managementserver:
         - ManagementServer/*.csproj
 
 test_managementserver:
-  stage: test
+  stage: test-managementserver
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
     - cd ManagementServer
@@ -174,7 +186,7 @@ test_managementserver:
 # 🌍 WorldSynchronization (Rust)
 ##############################
 build_worldsync:
-  stage: build
+  stage: build-worldsync
   image: rust:1.80
   script:
     - echo "⚙️ Building WorldSynchronization..."
@@ -188,7 +200,7 @@ build_worldsync:
         - WorldSynchronization/Cargo.toml
 
 test_worldsync:
-  stage: test
+  stage: test-worldsync
   image: rust:1.80
   script:
     - cd WorldSynchronization
