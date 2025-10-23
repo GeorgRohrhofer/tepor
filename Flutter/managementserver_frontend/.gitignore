@@ -1,0 +1,69 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code (optional: kommentiere aus, falls du deine settings teilen willst)
+.vscode/
+
+# Flutter / Dart / Pub
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+**/doc/api/
+**/generated_plugin_registrant.dart
+
+# Web build outputs
+build/web/
+web/.dart_tool/
+web/build/
+dist/
+
+# Logs, temp files
+*.tmp
+*.lock
+
+# Environment files
+.env
+.env.*
+
+# Firebase / Hosting (optional)
+.firebase/
+.firebaserc
+firebase.json
+google-services.json
+GoogleService-Info.plist
+
+# Node / Web tools (optional: z. B. Tailwind, npm)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Symbolication / Obfuscation
+app.*.symbols
+app.*.map.json
+
+
+android/
+ios/
+macos/
+linux/
+windows/
