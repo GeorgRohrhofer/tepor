@@ -2,9 +2,6 @@ stages:
   - build
   - test
 
-##############################
-# 🧱 NodeBackend (C++ / CMake)
-##############################
 build_nodebackend:
   stage: build
   image: gcc:13
@@ -12,7 +9,7 @@ build_nodebackend:
     - apt-get update -qq
     - apt-get install -y cmake make git
   script:
-    - echo "🔧 Building NodeBackend..."
+    - echo "Building NodeBackend..."
     - cd NodeBackend
     - mkdir -p build && cd build
     - cmake ..
@@ -28,22 +25,19 @@ test_nodebackend:
   stage: test
   image: gcc:13
   script:
-    - echo "🧪 Testing NodeBackend..."
+    - echo "Testing NodeBackend..."
     - cd NodeBackend/build
     - ctest --output-on-failure || echo "No tests found."
   rules:
     - exists:
         - NodeBackend/CMakeLists.txt
 
-##############################
-# 🖼️ WebUI (Flutter)
-##############################
 build_webui:
   stage: build
   image: cirrusci/flutter:stable
   script:
-    - echo "🚀 Building Flutter WebUI..."
-    - cd WebUI
+    - echo "Building Flutter WebUI..."
+    - cd WebUI/managementserver_frontend
     - flutter pub get
     - flutter build web --release
   artifacts:
@@ -51,52 +45,46 @@ build_webui:
       - WebUI/build/web/
   rules:
     - exists:
-        - WebUI/pubspec.yaml
+        - WebUI/managementserver_frontend/pubspec.yaml
 
 test_webui:
   stage: test
   image: cirrusci/flutter:stable
   script:
-    - echo "🧪 Running Flutter tests..."
-    - cd WebUI
+    - echo "Running Flutter tests..."
+    - cd WebUI/managementserver_frontend
     - flutter test || echo "No tests found."
   rules:
     - exists:
-        - WebUI/test/
+        - WebUI/managementserver_frontend/test/
 
-##############################
-# 🤖 DiscordBot (Python)
-##############################
 build_discordbot:
   stage: build
   image: python:3.11
   script:
-    - echo "📦 Installing dependencies..."
+    - echo "Installing dependencies..."
     - cd DiscordBot
-    - pip install -r requirements.txt
+    #- pip install -r requirements.txt
   rules:
     - exists:
-        - DiscordBot/requirements.txt
+        - DiscordBot/script.py
 
 test_discordbot:
   stage: test
   image: python:3.11
   script:
-    - echo "🧪 Running DiscordBot tests..."
+    - echo "Running DiscordBot tests..."
     - cd DiscordBot
     - pytest || echo "No tests found."
   rules:
     - exists:
         - DiscordBot/tests/
 
-##############################
-# 🩺 MonitoringService (C#)
-##############################
 build_monitoring_client:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - echo "🏗️ Building Monitoring Client..."
+    - echo "Building Monitoring Client..."
     - cd MonitoringService/Client
     - dotnet restore
     - dotnet build --configuration Release
@@ -105,7 +93,7 @@ build_monitoring_client:
       - MonitoringService/Client/bin/
   rules:
     - exists:
-        - MonitoringService/Client/*.csproj
+        - MonitoringService/Client/*.sln
 
 test_monitoring_client:
   stage: test
@@ -115,13 +103,13 @@ test_monitoring_client:
     - dotnet test || echo "No tests found."
   rules:
     - exists:
-        - MonitoringService/Client/*.csproj
+        - MonitoringService/Client/*.sln
 
 build_monitoring_server:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - echo "🏗️ Building Monitoring Server..."
+    - echo "Building Monitoring Server..."
     - cd MonitoringService/Server
     - dotnet restore
     - dotnet build --configuration Release
@@ -130,7 +118,7 @@ build_monitoring_server:
       - MonitoringService/Server/bin/
   rules:
     - exists:
-        - MonitoringService/Server/*.csproj
+        - MonitoringService/Server/*.sln
 
 test_monitoring_server:
   stage: test
@@ -140,25 +128,22 @@ test_monitoring_server:
     - dotnet test || echo "No tests found."
   rules:
     - exists:
-        - MonitoringService/Server/*.csproj
+        - MonitoringService/Server/*.sln
 
-##############################
-# 🧩 ManagementServer (C#)
-##############################
 build_managementserver:
   stage: build
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - echo "🏗️ Building ManagementServer..."
-    - cd ManagementServer
+    - echo "Building ManagementBackend..."
+    - cd ManagementBackend
     - dotnet restore
     - dotnet build --configuration Release
   artifacts:
     paths:
-      - ManagementServer/bin/
+      - ManagementBackend/bin/
   rules:
     - exists:
-        - ManagementServer/*.csproj
+        - ManagementBackend/*.sln
 
 test_managementserver:
   stage: test
@@ -168,16 +153,13 @@ test_managementserver:
     - dotnet test || echo "No tests found."
   rules:
     - exists:
-        - ManagementServer/*.csproj
+        - ManagementBackend/*.sln
 
-##############################
-# 🌍 WorldSynchronization (Rust)
-##############################
 build_worldsync:
   stage: build
   image: rust:1.80
   script:
-    - echo "⚙️ Building WorldSynchronization..."
+    - echo "Building WorldSynchronization..."
     - cd WorldSynchronization
     - cargo build --release
   artifacts:
