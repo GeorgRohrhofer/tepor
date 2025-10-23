@@ -140,7 +140,7 @@ build_managementserver:
     - dotnet build --configuration Release
   artifacts:
     paths:
-      - ManagementBackend/bin/
+      - ManagementBackend/ManagementBackend/bin/
   rules:
     - exists:
         - ManagementBackend/*.sln
