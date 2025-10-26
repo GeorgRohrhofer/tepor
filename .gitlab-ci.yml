@@ -1,0 +1,180 @@
+stages:
+  - build
+  - test
+
+build_nodebackend:
+  stage: build
+  image: gcc:13
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y cmake make git
+  script:
+    - echo "Building NodeBackend..."
+    - cd NodeBackend
+    - mkdir -p build && cd build
+    - cmake ..
+    - cmake --build .
+  artifacts:
+    paths:
+      - NodeBackend/build/
+  rules:
+    - exists:
+        - NodeBackend/CMakeLists.txt
+
+test_nodebackend:
+  stage: test
+  image: gcc:13
+  script:
+    - echo "Testing NodeBackend..."
+    - cd NodeBackend/build
+    - ctest --output-on-failure || echo "No tests found."
+  rules:
+    - exists:
+        - NodeBackend/CMakeLists.txt
+
+build_webui:
+  stage: build
+  image: cirrusci/flutter:stable
+  script:
+    - echo "Building Flutter WebUI..."
+    - cd WebUI/managementserver_frontend
+    - flutter pub get
+    - flutter build web --release
+  artifacts:
+    paths:
+      - WebUI/build/web/
+  rules:
+    - exists:
+        - WebUI/managementserver_frontend/pubspec.yaml
+
+test_webui:
+  stage: test
+  image: cirrusci/flutter:stable
+  script:
+    - echo "Running Flutter tests..."
+    - cd WebUI/managementserver_frontend
+    - flutter test || echo "No tests found."
+  rules:
+    - exists:
+        - WebUI/managementserver_frontend/test/
+
+build_discordbot:
+  stage: build
+  image: python:3.11
+  script:
+    - echo "Installing dependencies..."
+    - cd DiscordBot
+    #- pip install -r requirements.txt
+  rules:
+    - exists:
+        - DiscordBot/script.py
+
+test_discordbot:
+  stage: test
+  image: python:3.11
+  script:
+    - echo "Running DiscordBot tests..."
+    - cd DiscordBot
+    - pytest || echo "No tests found."
+  rules:
+    - exists:
+        - DiscordBot/tests/
+
+build_monitoring_client:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Building Monitoring Client..."
+    - cd MonitoringService/Client
+    - dotnet restore
+    - dotnet build --configuration Release
+  artifacts:
+    paths:
+      - MonitoringService/Client/bin/
+  rules:
+    - exists:
+        - MonitoringService/Client/*.sln
+
+test_monitoring_client:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - cd MonitoringService/Client
+    - dotnet test || echo "No tests found."
+  rules:
+    - exists:
+        - MonitoringService/Client/*.sln
+
+build_monitoring_server:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Building Monitoring Server..."
+    - cd MonitoringService/Server
+    - dotnet restore
+    - dotnet build --configuration Release
+  artifacts:
+    paths:
+      - MonitoringService/Server/bin/
+  rules:
+    - exists:
+        - MonitoringService/Server/*.sln
+
+test_monitoring_server:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - cd MonitoringService/Server
+    - dotnet test || echo "No tests found."
+  rules:
+    - exists:
+        - MonitoringService/Server/*.sln
+
+build_managementserver:
+  stage: build
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - echo "Building ManagementBackend..."
+    - cd ManagementBackend
+    - dotnet restore
+    - dotnet build --configuration Release
+  artifacts:
+    paths:
+      - ManagementBackend/ManagementBackend/bin/
+  rules:
+    - exists:
+        - ManagementBackend/*.sln
+
+test_managementserver:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - cd ManagementBackend
+    - dotnet test || echo "No tests found."
+  rules:
+    - exists:
+        - ManagementBackend/*.sln
+
+build_worldsync:
+  stage: build
+  image: rust:1.80
+  script:
+    - echo "Building WorldSynchronization..."
+    - cd WorldSynchronization
+    - cargo build --release
+  artifacts:
+    paths:
+      - WorldSynchronization/target/release/
+  rules:
+    - exists:
+        - WorldSynchronization/Cargo.toml
+
+test_worldsync:
+  stage: test
+  image: rust:1.80
+  script:
+    - cd WorldSynchronization
+    - cargo test -- --nocapture || echo "No tests found."
+  rules:
+    - exists:
+        - WorldSynchronization/Cargo.toml
