@@ -1,0 +1,50 @@
+services:
+  management-backend:
+    depends_on:
+      - db
+      - flyway
+    build:
+      context: ../../ManagementBackend/ManagementBackend/
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+  monitoring-server:
+    depends_on:
+      - db
+      - flyway
+    build:
+      context: ../../MonitoringService/Server/ServerMonitoringService/
+      dockerfile: Dockerfile
+    ports:
+      - 6942:6942
+  discord-bot:
+    build:
+      context: ../../DiscordBot/
+      dockerfile: Dockerfile
+    ports:
+      - 6969:6969
+  web-ui:
+    depends_on:
+      - management-backend
+    build:
+      context: ../../WebUI/
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+  db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: pass
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+  flyway:
+    image: flyway/flyway
+    command: -url=jdbc:postgresql://db:5432/postgres -schemas=public -user=postgres -password=pass -connectRetries=60 migrate
+    volumes:
+      - .:/flyway/sql
+    depends_on:
+      - db
