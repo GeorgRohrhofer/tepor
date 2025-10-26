@@ -1,0 +1,28 @@
+services:
+  node-backend:
+    depends_on:
+      - flyway
+    build:
+      context: ../../NodeBackend/
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+  monitoring-client:
+    build:
+      context: ../../MonitoringService/Client/ClientMonitoringService/
+      dockerfile: Dockerfile
+    ports:
+      - 6943:6943
+#TODO: Add container runner for world synchronization
+  flyway:
+    image: flyway/flyway
+    command:
+      - -url=jdbc:sqlite:/flyway/sqlite.db
+      - -locations=filesystem:/flyway/sql
+      - migrate
+    volumes:
+      - .:/flyway/sql 
