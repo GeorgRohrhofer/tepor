@@ -6,12 +6,9 @@ WORKDIR /source
 
 RUN dotnet nuget locals all --clear
 
-# Copy project file and restore as distinct layers
-COPY *.csproj .
-RUN dotnet restore -a $TARGETARCH
-
-# Copy source code and publish app
 COPY . .
+RUN dotnet clean
+RUN dotnet restore -a $TARGETARCH
 RUN dotnet publish -a $TARGETARCH --no-restore -o /app
 
 
