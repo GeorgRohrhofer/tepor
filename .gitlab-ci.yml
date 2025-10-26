@@ -34,7 +34,7 @@ test_nodebackend:
 
 build_webui:
   stage: build
-  image: cirrusci/flutter:stable
+  image: ghcr.io/cirruslabs/flutter:latest
   script:
     - echo "Building Flutter WebUI..."
     - cd WebUI/managementserver_frontend
@@ -49,7 +49,7 @@ build_webui:
 
 test_webui:
   stage: test
-  image: cirrusci/flutter:stable
+  image: ghcr.io/cirruslabs/flutter:latest
   script:
     - echo "Running Flutter tests..."
     - cd WebUI/managementserver_frontend
