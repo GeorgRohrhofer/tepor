@@ -1,5 +1,4 @@
 #![allow(unused_imports)]
 
-#[cfg(feature = "logging")]
-pub(crate) use crate::{log, logging::LogLevel};
+pub(crate) use crate::{error, exit, exit_no_log, info, log, trace, warn};
 pub(crate) use std::net::UdpSocket;
