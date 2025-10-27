@@ -1,0 +1,11 @@
+[package]
+name = "world-sync"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "*", features = ["derive"] }
+
+[features]
+default = ["logging"]
+logging = []
