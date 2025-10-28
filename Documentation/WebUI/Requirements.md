@@ -17,7 +17,6 @@
 - Login via **Keycloak** options:  
   - **Google Account**  
   - **Microsoft Account**  
-- Login fields must remain consistent with Keycloak
 
 ---
 
