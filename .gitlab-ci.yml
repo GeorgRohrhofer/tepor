@@ -21,10 +21,11 @@ build_nodebackend:
     - mkdir -p build && cd build
     - cmake ..
     - cmake --build .
+    - cmake --install . --prefix ./install
     - echo "Build did something!!!"
   artifacts:
     paths:
-      - NodeBackend/build/
+      - NodeBackend/build/install/
   rules:
     - exists:
         - NodeBackend/CMakeLists.txt
