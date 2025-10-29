@@ -4,7 +4,7 @@ stages:
 
 build_nodebackend:
   stage: build
-  image: gcc:13
+  image: gcc:15
   before_script:
     - apt-get update -qq
     - apt-get install -y cmake make git
@@ -23,7 +23,7 @@ build_nodebackend:
 
 test_nodebackend:
   stage: test
-  image: gcc:13
+  image: gcc:15
   script:
     - echo "Testing NodeBackend..."
     - cd NodeBackend/build
