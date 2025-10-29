@@ -25,3 +25,12 @@ if(MSVC)
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 endif()
+
+install(TARGETS NodeBackend
+    RUNTIME DESTINATION bin
+)
+
+install(TARGETS dockerlib
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
