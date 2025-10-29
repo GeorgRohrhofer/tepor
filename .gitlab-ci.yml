@@ -14,12 +14,14 @@ build_nodebackend:
     - tar -xzf cmake-${CMAKE_VER}-linux-x86_64.tar.gz
     - mv cmake-${CMAKE_VER}-linux-x86_64 /opt/cmake
     - ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+    - cmake --version
   script:
     - echo "Building NodeBackend..."
     - cd NodeBackend
     - mkdir -p build && cd build
     - cmake ..
     - cmake --build .
+    - echo "Build did something!!!"
   artifacts:
     paths:
       - NodeBackend/build/
