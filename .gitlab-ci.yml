@@ -7,11 +7,8 @@ build_nodebackend:
   image: gcc:15
   before_script:
     - apt-get update -qq
-    - apt-get install -y make git
-    - apt-get update && apt-get install -y wget \
-        && wget https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.sh \
-        && bash cmake-4.1.2-linux-x86_64.sh --skip-license --prefix=/usr/local \
-        && cmake --version
+    - apt-get install -y cmake make git
+    - make --version
   script:
     - echo "Building NodeBackend..."
     - cd NodeBackend
