@@ -1,4 +1,4 @@
-namespace RestAPI
+namespace ManagementBackend
 {
     public class WeatherForecast
     {
