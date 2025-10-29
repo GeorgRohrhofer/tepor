@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <iostream>
 #include <ostream>
 
@@ -16,5 +15,8 @@ int main()
     for (auto s : res) {
         cout << s << endl; 
     }
+
+    string containerName = d.startContainer("marctv/minecraft-papermc-server:1.21.10-91");
+    cout << containerName << endl;
     return 0;
 }

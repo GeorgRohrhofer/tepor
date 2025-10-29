@@ -1,6 +1,7 @@
 #include "dockerlib.h"
 
 #include <curl/curl.h>
+#include <curl/easy.h>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
 
@@ -35,6 +36,8 @@ public:
     std::string makeRequest(const std::string& endpoint, const std::string& method, 
                            const std::string& data = "") {
         std::string response;
+        curl_easy_reset(curl);
+
         curl_easy_setopt(curl, CURLOPT_UNIX_SOCKET_PATH, socket_path.c_str());
         curl_easy_setopt(curl, CURLOPT_URL, ("http://localhost" + endpoint).c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
@@ -43,11 +46,14 @@ public:
         struct curl_slist* headers = nullptr;
 
         if (method == "POST") {
-            curl_easy_setopt(curl, CURLOPT_POST, 1L);
             if (!data.empty()) {
+                curl_easy_setopt(curl, CURLOPT_POST, 1L);
                 curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+                curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
                 headers = curl_slist_append(headers, "Content-Type: application/json");
                 curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+            } else {
+                curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
             }
         } else if (method == "GET") {
             curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
@@ -97,7 +103,7 @@ public:
             createBody["HostConfig"] = {{"PortBindings", portBindingsJson}};
         }
 
-        std::string endpoint = "/v1.41/containers/create";
+        std::string endpoint = "/containers/create";
         if (!containerName.empty()) {
             endpoint += "?name=" + containerName;
         }
@@ -107,8 +113,8 @@ public:
         
         if (responseJson.contains("Id")) {
             std::string containerId = responseJson["Id"];
-            std::string startEndpoint = "/v1.41/containers/" + containerId + "/start";
-            makeRequest(startEndpoint, "POST");
+            std::string startEndpoint = "/containers/" + containerId + "/start";
+            std::string res = makeRequest(startEndpoint, "POST");
             return containerId;
         } else {
             throw std::runtime_error("Failed to create container: " + response);
@@ -116,17 +122,17 @@ public:
     }
 
     void stopContainer(const std::string& containerIdOrName, int timeout) {
-        std::string endpoint = "/v1.41/containers/" + containerIdOrName + "/stop?t=" + std::to_string(timeout);
+        std::string endpoint = "/containers/" + containerIdOrName + "/stop?t=" + std::to_string(timeout);
         makeRequest(endpoint, "POST");
     }
 
     void removeContainer(const std::string& containerIdOrName, bool force) {
-        std::string endpoint = "/v1.41/containers/" + containerIdOrName + "?force=" + (force ? "true" : "false");
+        std::string endpoint = "/containers/" + containerIdOrName + "?force=" + (force ? "true" : "false");
         makeRequest(endpoint, "DELETE");
     }
 
     std::string getContainerStatus(const std::string& containerIdOrName) {
-        std::string endpoint = "/v1.41/containers/" + containerIdOrName + "/json";
+        std::string endpoint = "/containers/" + containerIdOrName + "/json";
         std::string response = makeRequest(endpoint, "GET");
         json responseJson = json::parse(response);
         
@@ -137,7 +143,7 @@ public:
     }
 
     std::vector<std::string> listContainers(bool all) {
-        std::string endpoint = "/v1.41/containers/json?all=" + std::string(all ? "true" : "false");
+        std::string endpoint = "/containers/json?all=" + std::string(all ? "true" : "false");
         std::string response = makeRequest(endpoint, "GET");
         json responseJson = json::parse(response);
         
@@ -151,7 +157,6 @@ public:
     }
 };
 
-// Implementation of public interface
 Docker::Docker(const std::string& socket) 
     : pImpl(std::make_unique<Impl>(socket)) {}
 
