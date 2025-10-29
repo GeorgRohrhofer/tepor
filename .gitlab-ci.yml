@@ -4,10 +4,14 @@ stages:
 
 build_nodebackend:
   stage: build
-  image: danger89/cmake
+  image: gcc:15
   before_script:
     - apt-get update -qq
-    - apt-get install -y cmake make git
+    - apt-get install -y make git
+    - apt-get update && apt-get install -y wget \
+        && wget https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.sh \
+        && bash cmake-4.1.2-linux-x86_64.sh --skip-license --prefix=/usr/local \
+        && cmake --version
   script:
     - echo "Building NodeBackend..."
     - cd NodeBackend
@@ -23,7 +27,7 @@ build_nodebackend:
 
 test_nodebackend:
   stage: test
-  image: danger89/cmake
+  image: gcc:15
   script:
     - echo "Testing NodeBackend..."
     - cd NodeBackend/build
