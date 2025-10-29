@@ -4,7 +4,7 @@ stages:
 
 build_nodebackend:
   stage: build
-  image: kitware/cmake
+  image: kitware/cmake:ci-debian12-x86_64-2025-03-31
   before_script:
     - apt-get update -qq
     - apt-get install -y cmake make git
@@ -23,7 +23,7 @@ build_nodebackend:
 
 test_nodebackend:
   stage: test
-  image: kitware/cmake
+  image: kitware/cmake:ci-debian12-x86_64-2025-03-31
   script:
     - echo "Testing NodeBackend..."
     - cd NodeBackend/build
