@@ -132,7 +132,7 @@ test_monitoring_server:
 
 build_managementserver:
   stage: build
-  image: mcr.microsoft.com/dotnet/sdk:8.0
+  image: mcr.microsoft.com/dotnet/sdk:9.0
   script:
     - echo "Building ManagementBackend..."
     - cd ManagementBackend
@@ -147,7 +147,7 @@ build_managementserver:
 
 test_managementserver:
   stage: test
-  image: mcr.microsoft.com/dotnet/sdk:8.0
+  image: mcr.microsoft.com/dotnet/sdk:9.0
   script:
     - cd ManagementBackend
     - dotnet test || echo "No tests found."
