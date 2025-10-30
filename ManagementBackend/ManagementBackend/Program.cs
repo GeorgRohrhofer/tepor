@@ -1,3 +1,4 @@
+using ManagementBackend.resources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 

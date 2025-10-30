@@ -1,4 +1,4 @@
-namespace ManagementBackend
+namespace ManagementBackend.resources
 {
     public class WeatherForecast
     {
