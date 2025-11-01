@@ -1,6 +1,7 @@
 from typing import Optional
 import discord
 import asyncio
+import os
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
@@ -33,15 +34,13 @@ async def send_to_channels(channel_ids: list[int], message: str):
 
 # simulate external api call
 async def simulate_external_trigger():
-    await asyncio.sleep(5) # simulate delay
     print("External trigger received, sending messages...")
     await send_to_channels([123456, 789101112], "Hello from the bot!")
 
 async def main():
     # run bot and simulated external trigger at same time
     await asyncio.gather(
-        # ! DO NOT SHARE YOUR TOKEN WITH ANYONE!
-        client.start('your token here'),
+        client.start(os.getenv("DISCORD_BOT_TOKEN")),
         simulate_external_trigger()
     )
 
