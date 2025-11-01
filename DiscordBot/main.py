@@ -45,9 +45,7 @@ async def main():
         simulate_external_trigger()
     )
 
-asyncio.run(main())
-
-
 if __name__ == "__main__":
     print("test bot")
+    asyncio.run(main())
     
