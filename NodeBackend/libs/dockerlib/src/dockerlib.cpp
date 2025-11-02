@@ -1,13 +1,9 @@
 #include "dockerlib.h"
 
-#include "DockerHubAPI.h"
 #include "StringUtils.h"
-
 #include <curl/curl.h>
 #include <curl/easy.h>
-#include <iostream>
 #include <nlohmann/json.hpp>
-#include <ostream>
 #include <stdexcept>
 
 using json = nlohmann::json;
