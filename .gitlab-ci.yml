@@ -157,7 +157,7 @@ test_managementserver:
 
 build_worldsync:
   stage: build
-  image: rust:1.80
+  image: rust:1.91
   script:
     - echo "Building WorldSynchronization..."
     - cd WorldSynchronization
@@ -171,7 +171,7 @@ build_worldsync:
 
 test_worldsync:
   stage: test
-  image: rust:1.80
+  image: rust:1.91
   script:
     - cd WorldSynchronization
     - cargo test -- --nocapture || echo "No tests found."
