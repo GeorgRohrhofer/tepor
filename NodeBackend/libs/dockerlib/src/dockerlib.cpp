@@ -1,6 +1,5 @@
 #include "dockerlib.h"
 
-#include "StringUtils.h"
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <nlohmann/json.hpp>
@@ -120,7 +119,7 @@ public:
       return containerId;
     } else if (isFirstTry){
       // Image not found. 
-      // Pull from dockerhub
+      // Pull from hub.docker.com
       pullImage(image);
       return startContainer(image, containerName, env, portBindings, false);
     } else {
@@ -130,24 +129,9 @@ public:
 
   void pullImage(std::string image)
   {
-    std::vector<std::string> imageParts = split(image, ':');
+    std::string endpoint = "/images/create?fromImage=" + image;
 
-    std::string imageName;
-    std::string tag;
-
-    if (imageParts.size() == 1) {
-      imageName = imageParts[0];
-      tag = "latest";
-    } else if (imageParts.size() == 2) {
-      imageName = imageParts[0];
-      tag = imageParts[1];
-    } else {
-      throw std::runtime_error("Image is not a valid format");
-    }
-    
-    std::string endpoint = "/v1.41/images/create?fromImage=" + imageName + "&tag=" + tag;
-
-    std::string response = makeRequest("POST", endpoint);
+    std::string response = makeRequest(endpoint, "POST");
 
     if (response.empty()) {
       throw std::runtime_error("Image could not be pulled");
