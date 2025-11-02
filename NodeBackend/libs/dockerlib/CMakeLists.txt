@@ -34,11 +34,13 @@ target_include_directories(dockerlib
 target_link_libraries(dockerlib
     PUBLIC
         CURL::libcurl
+        StringUtils
     PRIVATE
         nlohmann_json::nlohmann_json
 )
 
 install(TARGETS nlohmann_json EXPORT DockerLibTargets)
+install(TARGETS StringUtils EXPORT DockerLibTargets)
 
 # Installation
 install(TARGETS dockerlib

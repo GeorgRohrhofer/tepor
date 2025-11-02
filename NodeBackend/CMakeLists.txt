@@ -10,9 +10,11 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
 )
 
+add_subdirectory(libs/StringUtils)
 add_subdirectory(libs/dockerlib)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+target_link_libraries(${PROJECT_NAME} PRIVATE StringUtils)
 target_link_libraries(${PROJECT_NAME} PRIVATE dockerlib)
 
 target_include_directories(${PROJECT_NAME}

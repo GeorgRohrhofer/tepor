@@ -1,8 +1,13 @@
 #include "dockerlib.h"
 
+#include "DockerHubAPI.h"
+#include "StringUtils.h"
+
 #include <curl/curl.h>
 #include <curl/easy.h>
+#include <iostream>
 #include <nlohmann/json.hpp>
+#include <ostream>
 #include <stdexcept>
 
 using json = nlohmann::json;
@@ -82,7 +87,8 @@ public:
     const std::string& image, 
     const std::string& containerName,
     const std::vector<std::string>& env,
-    const std::map<std::string, std::string>& portBindings
+    const std::map<std::string, std::string>& portBindings,
+    const bool isFirstTry = true
   ) {
     json createBody = {
       {"Image", image},
@@ -116,18 +122,40 @@ public:
       std::string startEndpoint = "/containers/" + containerId + "/start";
       std::string res = makeRequest(startEndpoint, "POST");
       return containerId;
-    } else {
+    } else if (isFirstTry){
       // Image not found. 
-    // Pull from dockerhub
-    pullImage(image);
-    startContainer(image, containerName, env, portBindings);
-    throw new std::runtime_error("Error during container creation");
+      // Pull from dockerhub
+      pullImage(image);
+      return startContainer(image, containerName, env, portBindings, false);
+    } else {
+      throw std::runtime_error("Error during container creation");
     }
   }
 
   void pullImage(std::string image)
   {
-    // TODO: Implement
+    std::vector<std::string> imageParts = split(image, ':');
+
+    std::string imageName;
+    std::string tag;
+
+    if (imageParts.size() == 1) {
+      imageName = imageParts[0];
+      tag = "latest";
+    } else if (imageParts.size() == 2) {
+      imageName = imageParts[0];
+      tag = imageParts[1];
+    } else {
+      throw std::runtime_error("Image is not a valid format");
+    }
+    
+    std::string endpoint = "/v1.41/images/create?fromImage=" + imageName + "&tag=" + tag;
+
+    std::string response = makeRequest("POST", endpoint);
+
+    if (response.empty()) {
+      throw std::runtime_error("Image could not be pulled");
+    }
   }
 
   void stopContainer(const std::string& containerIdOrName, int timeout) {
