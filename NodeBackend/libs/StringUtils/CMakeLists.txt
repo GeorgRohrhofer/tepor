@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 4.1.2)
 project(StringUtils LANGUAGES CXX)
 
 # Set C++ version
