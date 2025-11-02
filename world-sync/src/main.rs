@@ -1,4 +1,5 @@
 pub(crate) mod cli;
+#[cfg(all(feature = "logging", not(test)))]
 pub(crate) mod logging;
 pub(crate) mod prelude;
 pub(crate) mod receive;
@@ -13,20 +14,25 @@ fn main() {
     let cli::Cli {
         mode,
         target,
-        #[cfg(feature = "logging")]
+        #[cfg(all(feature = "logging", not(test)))]
         log_folder,
-        #[cfg(feature = "logging")]
+        #[cfg(all(feature = "logging", not(test)))]
         log_level,
     } = clap::Parser::parse();
 
-    #[cfg(feature = "logging")]
+    #[cfg(all(feature = "logging", not(test)))]
     logging::init(log_folder, log_level);
+
+    info!("binding udp socket to {target:?}");
+    let socket = UdpSocket::bind(target.as_ref()).unwrap_or_else(|err| {
+        exit!("cannot bind udp socket: {err:#?}");
+    });
 
     match mode {
         cli::Mode::Send(args) => args.run(),
         cli::Mode::Receive(args) => args.run(),
     };
 
-    #[cfg(feature = "logging")]
+    #[cfg(all(feature = "logging", not(test)))]
     logging::finish();
 }

@@ -1,29 +1,20 @@
 use crate::prelude::*;
-
-#[cfg(feature = "logging")]
 use std::{sync::Mutex, sync::OnceLock};
 
-#[cfg(feature = "logging")]
 pub(crate) static LOG_PATH: OnceLock<Box<str>> = OnceLock::new();
-
-#[cfg(feature = "logging")]
 pub(crate) static LOG_LEVEL: OnceLock<LogLevel> = OnceLock::new();
-
-#[cfg(feature = "logging")]
 pub(crate) static LOGS: Mutex<Vec<Box<str>>> = Mutex::new(vec![]);
 
-#[cfg(feature = "logging")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum, Default, PartialOrd, Ord)]
 pub(crate) enum LogLevel {
-    Off,
     Trace,
     #[default]
     Info,
     Warning,
     Error,
+    Off,
 }
 
-#[cfg(feature = "logging")]
 pub(crate) fn init(folder: Box<str>, level: LogLevel) {
     let _ = LOG_LEVEL.set(level);
     let _ = LOG_PATH.set(folder);
@@ -64,7 +55,6 @@ pub(crate) fn init(folder: Box<str>, level: LogLevel) {
 }
 
 /// write the log to a file
-#[cfg(feature = "logging")]
 pub(crate) fn finish() {
     let Some(path) = LOG_PATH.get() else {
         return;
@@ -94,64 +84,4 @@ pub(crate) fn finish() {
             exit_no_log!("error while writing to log file: {err:#?}");
         });
     });
-}
-
-#[macro_export]
-macro_rules! log {
-    ($level:ident, $($msg:tt)+ ) => {
-        #[cfg(feature = "logging")]
-        'log: {
-            use $crate::logging::LogLevel;
-            let level = LogLevel::$level;
-            let min = $crate::logging::LOG_LEVEL.get().copied().unwrap_or_default();
-            if  min > level {
-                break 'log;
-            }
-
-
-            if let Ok(mut lock) = $crate::logging::LOGS.lock() {
-                let msg = format!( $($msg)+ );
-                let now = ::chrono::Utc::now();
-                let mut lines = msg.lines();
-                if let Some(first) = lines.next() {
-                    lock.push(format!("{now} [{level:8?}] {first}\n").into());
-                }
-
-                while let Some(next) = lines.next(){
-                    lock.push(format!("\t{next}\n").into())
-                }
-            } else {
-                eprintln!("cannot aquire log");
-                break 'log;
-            };
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! trace {
-    ( $($msg:tt)+ ) => {{
-        crate::prelude::log!(Trace, $($msg)+ )
-    }}
-}
-
-#[macro_export]
-macro_rules! info {
-    ( $($msg:tt)+ ) => {{
-        crate::prelude::log!(Info, $($msg)+ )
-    }}
-}
-
-#[macro_export]
-macro_rules! warn {
-    ( $($msg:tt)+ ) => {{
-        crate::prelude::log!(Warning, $($msg)+ )
-    }}
-}
-
-#[macro_export]
-macro_rules! error {
-    ( $($msg:tt)+ ) => {{
-        crate::prelude::log!(Error, $($msg)+ )
-    }}
 }

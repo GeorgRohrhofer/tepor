@@ -1,6 +1,6 @@
 use clap::{Args, Parser, Subcommand};
 
-#[cfg(feature = "logging")]
+#[cfg(all(feature = "logging", not(test)))]
 use crate::logging::LogLevel;
 
 #[derive(Parser, Debug)]
@@ -11,11 +11,11 @@ pub(crate) struct Cli {
     /// example: `127.0.0.1:2000`
     pub(crate) target: Box<str>,
 
-    #[cfg(feature = "logging")]
+    #[cfg(all(feature = "logging", not(test)))]
     #[arg(long, default_value = "logs")]
     pub(crate) log_folder: Box<str>,
 
-    #[cfg(feature = "logging")]
+    #[cfg(all(feature = "logging", not(test)))]
     #[arg(long, short = 'l', default_value = "info")]
     pub(crate) log_level: LogLevel,
 
