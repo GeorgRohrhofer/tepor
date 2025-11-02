@@ -4,26 +4,35 @@ stages:
 
 build_nodebackend:
   stage: build
-  image: gcc:13
+  image: gcc:15
   before_script:
     - apt-get update -qq
-    - apt-get install -y cmake make git
+    - apt-get install -y make git
+    # download CMake 4.1.2
+    - CMAKE_VER=4.1.2
+    - wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz
+    - tar -xzf cmake-${CMAKE_VER}-linux-x86_64.tar.gz
+    - mv cmake-${CMAKE_VER}-linux-x86_64 /opt/cmake
+    - ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+    - cmake --version
   script:
     - echo "Building NodeBackend..."
     - cd NodeBackend
     - mkdir -p build && cd build
     - cmake ..
     - cmake --build .
+    - cmake --install . --prefix ./install
+    - echo "Build did something!!!"
   artifacts:
     paths:
-      - NodeBackend/build/
+      - NodeBackend/build/install/
   rules:
     - exists:
         - NodeBackend/CMakeLists.txt
 
 test_nodebackend:
   stage: test
-  image: gcc:13
+  image: gcc:15
   script:
     - echo "Testing NodeBackend..."
     - cd NodeBackend/build

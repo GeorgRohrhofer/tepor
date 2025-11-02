@@ -1,10 +1,15 @@
-FROM gcc:13
+FROM gcc:15
 
 WORKDIR /app
 
 RUN apt-get update -qq && \
-    apt-get install -y cmake make git && \
+    apt-get install -y make git && \
     rm -rf /var/lib/apt/lists/*
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz
+RUN tar -xzf cmake-4.1.2-linux-x86_64.tar.gz
+RUN mv cmake-4.1.2-linux-x86_64 /opt/cmake
+RUN ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
 
 COPY . ./NodeBackend
 
