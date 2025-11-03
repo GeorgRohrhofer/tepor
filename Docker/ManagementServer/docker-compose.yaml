@@ -21,6 +21,8 @@ services:
     build:
       context: ../../DiscordBot/
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - 6969:6969
   web-ui:
