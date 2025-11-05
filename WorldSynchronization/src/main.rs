@@ -1,4 +1,5 @@
 pub(crate) mod cli;
+pub(crate) mod file_visitor;
 #[cfg(all(feature = "logging", not(test)))]
 pub(crate) mod logging;
 pub(crate) mod prelude;
