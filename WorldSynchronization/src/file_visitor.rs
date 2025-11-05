@@ -99,3 +99,33 @@ pub(crate) fn visit_files_or_err(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::builder::OsStr;
+
+    #[test]
+    /// check visiting files recursively works
+    fn visit_all() {
+        let mut exp = vec![
+            "test_files/visit_all/info.md",
+            "test_files/visit_all/sub-dir/file",
+            "test_files/visit_all/sub-dir-2/.hidden",
+        ];
+
+        visit_files_or_err(
+            "test_files/visit_all",
+            |path, _| {
+                let exp = exp.pop().unwrap();
+                let exp = OsStr::from(exp);
+                assert_eq!(exp, path.as_os_str());
+                true
+            },
+            |path, err| panic!("{path:?} caused err: {err}"),
+        )
+        .unwrap();
+
+        assert!(exp.is_empty());
+    }
+}
