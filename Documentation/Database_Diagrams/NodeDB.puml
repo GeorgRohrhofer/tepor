@@ -1,0 +1,24 @@
+@startuml
+
+class World {
+    +id : int
+    +name : string
+    +hash : string
+    +config : string
+}
+
+class WorldStore {
+    +world_id : int
+    +node_id : int
+    +worldHash : string
+}
+
+World "1" --> "1" TeporUser : owner
+World "M" -- "N" Node : hosted on >
+WorldStore .. World
+WorldStore .. Node
+
+Node "1" --> "N" Logs : logs >
+
+@enduml
+
