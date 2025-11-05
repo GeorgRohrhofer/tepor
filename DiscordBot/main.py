@@ -1,50 +1,31 @@
-from typing import Optional
-import discord
-import asyncio
+from flask import Flask, jsonify, request, render_template
+from flask_cors import CORS
+import discordBot as dbot
+from threading import Thread
 import os
+import asyncio
 
-intents = discord.Intents.default()
-client = discord.Client(intents=intents)
+app = Flask(__name__)
+CORS(app)
 
-ready_event = asyncio.Event()
+def start_api():
+    app.run(host="0.0.0.0", port=6969)
 
-@client.event
-async def on_ready():
-    print(f'We have logged in as {client.user}')
-    ready_event.set()
-
-# Channel ID is provided below in for loop, together with message text
-async def send_message(channel_id: int, message: str) -> Optional[discord.Message]:
-    channel = client.get_channel(channel_id)
-    if channel:
-        await channel.send(message)
-        return 0
-    return 1
-
-# run send_message in for loop, for each channel id that is provided
-async def send_to_channels(channel_ids: list[int], message: str):
-    await ready_event.wait()
-
-    for channel_id in channel_ids:
-        result = await send_message(channel_id, message)
-        if result == 0:
-            print(f"Message sent to channel {channel_id}")
-        else:
-            print(f"Failed to send message to channel {channel_id}")
-
-# simulate external api call
-async def simulate_external_trigger():
-    print("External trigger received, sending messages...")
-    await send_to_channels([123456, 789101112], "Hello from the bot!")
-
-async def main():
-    # run bot and simulated external trigger at same time
-    await asyncio.gather(
-        client.start(os.getenv("DISCORD_BOT_TOKEN")),
-        simulate_external_trigger()
+@app.post("/message/send")
+def messageSend():
+   
+    jdata = request.get_json()    
+    future = asyncio.run_coroutine_threadsafe(
+        dbot.send_to_channels(jdata["channels"], jdata["messageContent"]), 
+        dbot.client.loop
     )
+    future.result(timeout=10)
+    
+    return "Success", 200
 
 if __name__ == "__main__":
-    print("test bot")
-    asyncio.run(main())
+    flask_thread = Thread(target=start_api)
+    flask_thread.daemon=True
+    flask_thread.start()
+    dbot.start_bot(os.getenv("DISCORD_BOT_TOKEN"))
     
