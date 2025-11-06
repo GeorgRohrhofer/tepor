@@ -85,6 +85,11 @@ pub(crate) fn visit_files_or_err(
 
         // iterate over sub-directories
         if path.is_dir() {
+            // ignore the info folder
+            if path.ends_with(INFO_DIR) {
+                continue;
+            }
+
             trace!("visit directory {path_ref:?}");
             let read = tri!(on_err, path_ref, read_dir(path_ref));
             stack.push((read, path));
@@ -104,27 +109,39 @@ mod tests {
     use super::*;
     use clap::builder::OsStr;
 
+    macro_rules! run_test {
+        ($path:literal => $($exp:literal),+ $(,)? ) => {{
+            let mut exp = vec![ $(concat!($path, $exp)),+ ];
+            visit_files_or_err(
+                $path,
+                |path| {
+                    let exp = exp.pop().expect("more files visited than expected");
+                    let exp = OsStr::from(exp);
+                    assert_eq!(exp, path.as_os_str(), "visited unexpected file");
+                    true
+                },
+                |path, err| panic!("{path:?} caused err: {err}"),
+            )
+            .expect("could not load test folder");
+
+            assert!(exp.is_empty(), "not all files were visited");
+        }};
+    }
+
     #[test]
     /// check visiting files recursively works
     fn visit_all() {
-        let mut exp = vec![
-            "test_files/visit_all/info.md",
-            "test_files/visit_all/sub-dir/file",
-            "test_files/visit_all/sub-dir-2/.hidden",
-        ];
+        run_test!("test_files/visit_all" =>
+            "/info.md",
+            "/sub-dir/file",
+            "/sub-dir-2/.hidden",
+        );
+    }
 
-        visit_files_or_err(
-            "test_files/visit_all",
-            |path| {
-                let exp = exp.pop().unwrap();
-                let exp = OsStr::from(exp);
-                assert_eq!(exp, path.as_os_str());
-                true
-            },
-            |path, err| panic!("{path:?} caused err: {err}"),
-        )
-        .unwrap();
-
-        assert!(exp.is_empty());
+    #[test]
+    fn ignore_info_folder() {
+        run_test!("test_files/ignore_info_folder" =>
+            "/info.md",
+        );
     }
 }
