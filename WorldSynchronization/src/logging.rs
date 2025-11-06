@@ -17,6 +17,12 @@ pub(crate) enum LogLevel {
     Off,
 }
 
+impl std::fmt::Display for LogLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self, f)
+    }
+}
+
 /// write to the log file, with the specified log level
 pub(crate) fn log_msg(level: LogLevel, msg: impl Into<Box<str>>) {
     let Ok(mut lock) = LOGS.lock() else {

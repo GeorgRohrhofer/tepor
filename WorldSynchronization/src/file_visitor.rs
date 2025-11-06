@@ -55,6 +55,7 @@ pub(crate) fn visit_files_or_err(
     mut on_err: impl FnMut(&Path, std::io::Error) -> bool,
 ) -> std::io::Result<()> {
     let path = PathBuf::from(path.as_ref());
+    trace!("visiting files at {path:?}");
     let read = read_dir(&path)?;
     let mut stack = vec![(read, path)];
 
@@ -74,6 +75,7 @@ pub(crate) fn visit_files_or_err(
 
         // got a file
         if path.is_file() {
+            trace!("visit file {path_ref:?}");
             if on_iter(path_ref) {
                 continue;
             } else {
@@ -83,6 +85,7 @@ pub(crate) fn visit_files_or_err(
 
         // iterate over sub-directories
         if path.is_dir() {
+            trace!("visit directory {path_ref:?}");
             let read = tri!(on_err, path_ref, read_dir(path_ref));
             stack.push((read, path));
             continue;

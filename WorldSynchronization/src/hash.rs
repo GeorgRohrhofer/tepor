@@ -59,6 +59,18 @@ pub(crate) fn calculate_hash(path: impl AsRef<Path>) -> std::io::Result<u64> {
     Ok(hash.finish())
 }
 
+impl crate::cli::CalcHashArgs {
+    pub(crate) fn run(self) {
+        let Self { directory } = self;
+        match calculate_hash(directory.as_ref()) {
+            Ok(hash) => println!("{hash}"),
+            Err(_err) => {
+                error!("could not calculate hash for {directory}: {_err}")
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

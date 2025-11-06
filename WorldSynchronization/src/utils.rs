@@ -64,3 +64,13 @@ macro_rules! error {
         $crate::prelude::log!(Error, $($msg)+ )
     }}
 }
+
+fn start_connection(target: impl AsRef<str> + std::fmt::Debug) {
+    todo!()
+    // info!("binding udp socket to {target:?}");
+    // let socket = UdpSocket::bind(target.as_ref()).unwrap_or_else(|err| {
+    //     exit!("cannot bind udp socket: {err:#?}");
+    // });
+
+    // socked
+}
