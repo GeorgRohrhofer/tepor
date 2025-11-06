@@ -1,7 +1,7 @@
 pub(crate) mod cli;
 pub(crate) mod file_visitor;
 pub(crate) mod hash;
-#[cfg(all(feature = "logging", not(test)))]
+// #[cfg(all(feature = "logging", not(test)))]
 pub(crate) mod logging;
 pub(crate) mod prelude;
 pub(crate) mod receive;
