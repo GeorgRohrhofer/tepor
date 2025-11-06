@@ -1,10 +1,7 @@
 //! visit all files in a directory
 
 use crate::prelude::*;
-use std::{
-    fs::{Metadata, read_dir},
-    path::{Path, PathBuf},
-};
+use std::{fs::read_dir, path::PathBuf};
 
 /// either unwrap the `$in` value, or calls `$on_err` with the error value
 macro_rules! tri {
