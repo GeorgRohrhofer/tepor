@@ -15,7 +15,7 @@ pub(crate) fn calculate_hash(path: impl AsRef<Path>) -> std::io::Result<u64> {
 
     visit_files_or_err(
         path,
-        |path, _file| {
+        |path| {
             // open the file to read it
             let mut file = match OpenOptions::new().read(true).open(path) {
                 Ok(file) => BufReader::new(file),

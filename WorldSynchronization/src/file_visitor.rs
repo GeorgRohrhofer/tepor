@@ -22,7 +22,7 @@ macro_rules! tri {
 /// visit all files in a directory.
 /// recursively visits sub-folders, but other file system features (like sym links), cause an [`std::io::ErrorKind::Unsupported`] error
 ///
-/// `on_iter`: visitor of file entries, with their path and meta data,
+/// `on_iter`: visitor of file entries
 /// and returns true if you wanna keep iterating, or false if youre done
 ///
 /// Returns the error for loading the initial folder
@@ -31,7 +31,7 @@ macro_rules! tri {
 /// for specific error behaviour, use [`list_files_or_err`]
 pub(crate) fn visit_files(
     path: impl AsRef<Path>,
-    on_iter: impl FnMut(&Path, Metadata) -> bool,
+    on_iter: impl FnMut(&Path) -> bool,
 ) -> std::io::Result<()> {
     visit_files_or_err(path, on_iter, |_path, _err| {
         warn!("File iter error at {_path:?}: {_err}");
@@ -42,7 +42,7 @@ pub(crate) fn visit_files(
 /// visit all files in a directory.
 /// recursively visits sub-folders, but other file system features (like sym links), cause an [`std::io::ErrorKind::Unsupported`] error
 ///
-/// `on_iter`: visitor of file entries, with their path and meta data
+/// `on_iter`: visitor of file entries
 /// `on_err`: visitor for errors, take in the relevant path, and a [`std::io::Error`]
 /// both visitors return true if you wanna keep iterating, or false if youre done
 ///
@@ -51,7 +51,7 @@ pub(crate) fn visit_files(
 /// for a version that just logs all errors, use [`list_files`]
 pub(crate) fn visit_files_or_err(
     path: impl AsRef<Path>,
-    mut on_iter: impl FnMut(&Path, Metadata) -> bool,
+    mut on_iter: impl FnMut(&Path) -> bool,
     mut on_err: impl FnMut(&Path, std::io::Error) -> bool,
 ) -> std::io::Result<()> {
     let path = PathBuf::from(path.as_ref());
@@ -74,8 +74,7 @@ pub(crate) fn visit_files_or_err(
 
         // got a file
         if path.is_file() {
-            let meta = tri!(on_err, path_ref, path.metadata());
-            if on_iter(path_ref, meta) {
+            if on_iter(path_ref) {
                 continue;
             } else {
                 return Ok(());
@@ -113,7 +112,7 @@ mod tests {
 
         visit_files_or_err(
             "test_files/visit_all",
-            |path, _| {
+            |path| {
                 let exp = exp.pop().unwrap();
                 let exp = OsStr::from(exp);
                 assert_eq!(exp, path.as_os_str());
