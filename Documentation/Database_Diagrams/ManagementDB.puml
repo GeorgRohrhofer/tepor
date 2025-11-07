@@ -2,8 +2,6 @@
 
 class TeporUser {
     +id : int
-    +isAdmin : boolean
-    +isActive : boolean
 }
 
 class World {
