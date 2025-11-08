@@ -1,0 +1,11 @@
+@startuml
+
+class World {
+    +id : int
+    +name : string
+    +hash : string
+    +config : string
+}
+
+@enduml
+
