@@ -13,28 +13,57 @@ def start_api():
 
 @app.post("/message/send/channel")
 def messageSendToChannels():
-   
-    jdata = request.get_json()    
+    jdata = request.get_json()  
+    if not jdata:
+        return "Invalid or empty JSON body", 400
+
+    channels = jdata.get("channels")
+    message = jdata.get("messageContent")
+
+    if not isinstance(channels, list) or len(channels) == 0:
+        return "Missing or invalid 'channels' array", 400
+    if not isinstance(message, str) or not message.strip():
+        return "Missing or empty 'messageContent'", 400
+    
     future = asyncio.run_coroutine_threadsafe(
         dbot.send_to_all_channels(jdata["channels"], jdata["messageContent"]),
         dbot.client.loop
     )
-    future.result(timeout=10)
-    
-    return "Success", 200
+    result = future.result(timeout=10)
 
+    if (result == dbot.Statuscode.SUCCESS):
+        return "Success", 200
+    if (result == dbot.Statuscode.WRONG_CHANNEL_ERROR):
+        return "Invalid Channel ID", 400
+    return "Unexpected Failure", 400
+    
 @app.post("/message/send/direct")
 def messageSendToDirects():
-   
     jdata = request.get_json()    
+    if not jdata:
+        return "Invalid or empty JSON body", 400
+    
+    directs = jdata.get("channels")
+    message = jdata.get("messageContent")
+
+    if not isinstance(directs, list) or len(directs) == 0:
+        return "Missing or invalid 'directs' array", 400
+    if not isinstance(message, str) or not message.strip():
+        return "Missing or empty 'messageContent'", 400
+
     future = asyncio.run_coroutine_threadsafe(
         dbot.send_to_all_directs(jdata["directs"], jdata["messageContent"]),
         dbot.client.loop
     )
-    future.result(timeout=10)
-    
-    return "Success", 200
+    result = future.result(timeout=10)
 
+    if (result == dbot.Statuscode.SUCCESS):
+        return "Success", 200
+    if (result == dbot.Statuscode.WRONG_USER_ERROR):
+        return "Invalid User ID", 400
+    if (result == dbot.Statuscode.USER_NOT_REACHABLE_ERROR):
+        return "User not reachable", 400
+    return "Unexpected Failure", 400
 
 if __name__ == "__main__":
     flask_thread = Thread(target=start_api)
