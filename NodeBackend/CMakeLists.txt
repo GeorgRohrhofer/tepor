@@ -8,9 +8,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Qt6 Module
 find_package(Qt6 REQUIRED COMPONENTS Core Network)
+set(CMAKE_AUTOMOC ON)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
+    "${PROJECT_SOURCE_DIR}/include/NetworkManager.h"
 )
 
 add_subdirectory(libs/StringUtils)
