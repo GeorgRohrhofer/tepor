@@ -16,13 +16,11 @@ namespace ClientMonitoringService
             {
                 double cpuUsage = GetCpuUsage();
                 double memoryUsage = GetMemoryUsage();
-                double gpuUsage = GetGpuUsage();
                 double diskUsage = GetDiskUsage("/");
                 var (rx, tx) = GetNetworkUsage("eth0");
 
                 Console.Clear();
                 Console.WriteLine("=== Linux System Resource Monitor ===");
-                Console.WriteLine($"CPU Usage:       {cpuUsage:F2}%");
                 Console.WriteLine($"Memory Usage:    {memoryUsage:F2}%");
                 Console.WriteLine($"GPU Usage:       {gpuUsage:F2}%");
                 Console.WriteLine($"Disk Usage (/):  {diskUsage:F2}%");
@@ -56,34 +54,6 @@ namespace ClientMonitoringService
             long memTotal = long.Parse(lines.First(l => l.StartsWith("MemTotal")).Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
             long memAvailable = long.Parse(lines.First(l => l.StartsWith("MemAvailable")).Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
             return 100.0 * (memTotal - memAvailable) / memTotal;
-        }
-
-        static double GetGpuUsage()
-        {
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "nvidia-smi",
-                    Arguments = "--query-gpu=utilization.gpu --format=csv,noheader,nounits",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using var process = Process.Start(psi);
-                string output = process?.StandardOutput.ReadToEnd()?.Trim() ?? "";
-                process?.WaitForExit();
-
-                if (double.TryParse(output.Split('\n')[0].Trim(), out double gpuUtil))
-                    return gpuUtil;
-            }
-            catch
-            {
-                // Fallback: kein NVIDIA-Treiber oder Fehler
-            }
-
-            return 0;
         }
 
         static double GetDiskUsage(string path)
