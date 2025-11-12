@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ManagementBackend.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("TestApi")]
     [Authorize]
     public class TestController : ControllerBase
     {
