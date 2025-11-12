@@ -22,7 +22,7 @@ namespace ClientMonitoringService
                 Console.Clear();
                 Console.WriteLine("=== Linux System Resource Monitor ===");
                 Console.WriteLine($"Memory Usage:    {memoryUsage:F2}%");
-                Console.WriteLine($"GPU Usage:       {gpuUsage:F2}%");
+                Console.WriteLine($"CPU Usage:       {cpuUsage:F2}%");
                 Console.WriteLine($"Disk Usage (/):  {diskUsage:F2}%");
                 Console.WriteLine($"Network (eth0):  RX={rx / 1024:F1} KB  TX={tx / 1024:F1} KB");
 
