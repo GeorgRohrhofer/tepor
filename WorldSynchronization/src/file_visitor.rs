@@ -5,7 +5,7 @@ use std::{fs::read_dir, path::PathBuf};
 
 /// either unwrap the `$in` value, or calls `$on_err` with the error value
 macro_rules! tri {
-    ($on_err:ident, $path:ident, $in:expr) => {
+    ($on_err:expr, $path:expr, $in:expr) => {
         match $in {
             Ok(k) => k,
             Err(err) => {
@@ -31,7 +31,7 @@ macro_rules! tri {
 /// for specific error behaviour, use [`list_files_or_err`]
 pub(crate) fn visit_files(
     path: impl AsRef<Path>,
-    on_iter: impl FnMut(&Path) -> bool,
+    on_iter: impl FnMut(PathBuf) -> bool,
 ) -> std::io::Result<()> {
     visit_files_or_err(path, on_iter, |_path, _err| {
         warn!("File iter error at {_path:?}: {_err}");
@@ -51,8 +51,8 @@ pub(crate) fn visit_files(
 /// for a version that just logs all errors, use [`list_files`]
 pub(crate) fn visit_files_or_err(
     path: impl AsRef<Path>,
-    mut on_iter: impl FnMut(&Path) -> bool,
-    mut on_err: impl FnMut(&Path, std::io::Error) -> bool,
+    mut on_iter: impl FnMut(PathBuf) -> bool,
+    mut on_err: impl FnMut(PathBuf, std::io::Error) -> bool,
 ) -> std::io::Result<()> {
     let path = PathBuf::from(path.as_ref());
     trace!("visiting files at {path:?}");
@@ -69,14 +69,13 @@ pub(crate) fn visit_files_or_err(
         };
 
         // unpack the path entry
-        let entry = tri!(on_err, folder_path, entry);
+        let entry = tri!(on_err, folder_path.clone(), entry);
         let path = entry.path();
-        let path_ref = path.as_path();
 
         // got a file
         if path.is_file() {
-            trace!("visit file {path_ref:?}");
-            if on_iter(path_ref) {
+            trace!("visit file {path:?}");
+            if on_iter(path) {
                 continue;
             } else {
                 return Ok(());
@@ -90,15 +89,15 @@ pub(crate) fn visit_files_or_err(
                 continue;
             }
 
-            trace!("visit directory {path_ref:?}");
-            let read = tri!(on_err, path_ref, read_dir(path_ref));
+            trace!("visit directory {path:?}");
+            let read = tri!(on_err, path, read_dir(path.as_path()));
             stack.push((read, path));
             continue;
         }
 
         // unsupported object
         let err = std::io::Error::from(std::io::ErrorKind::Unsupported);
-        tri!(on_err, path_ref, Err(err));
+        tri!(on_err, path, Err(err));
     }
 
     Ok(())
@@ -107,18 +106,20 @@ pub(crate) fn visit_files_or_err(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use clap::builder::OsStr;
+    use std::ffi::OsString;
 
     macro_rules! run_test {
         ($path:literal => $($exp:literal),+ $(,)? ) => {{
-            let mut exp = vec![ $(concat!($path, $exp)),+ ];
+            let mut exp = vec![ $(OsString::from(concat!($path, $exp))),+ ];
             visit_files_or_err(
                 $path,
                 |path| {
-                    let exp = exp.pop().expect("more files visited than expected");
-                    let exp = OsStr::from(exp);
-                    assert_eq!(exp, path.as_os_str(), "visited unexpected file");
-                    true
+                    if let Some(idx) = exp.iter().position(|item| path.as_os_str() == item) {
+                        exp.swap_remove(idx);
+                        true
+                    } else {
+                        panic!("did not expect path {path:?}");
+                    }
                 },
                 |path, err| panic!("{path:?} caused err: {err}"),
             )
