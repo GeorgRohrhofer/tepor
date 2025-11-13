@@ -43,7 +43,7 @@ def messageSendToDirects():
     if not jdata:
         return "Invalid or empty JSON body", 400
     
-    directs = jdata.get("channels")
+    directs = jdata.get("directs")
     message = jdata.get("messageContent")
 
     if not isinstance(directs, list) or len(directs) == 0:
