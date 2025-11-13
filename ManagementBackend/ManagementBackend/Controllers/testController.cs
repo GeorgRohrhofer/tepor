@@ -9,10 +9,37 @@ namespace ManagementBackend.Controllers
     [Authorize]
     public class TestController : ControllerBase
     {
+        private readonly DiscordMessageSender _discordSender;
+
+        public TestController(DiscordMessageSender discordSender)
+        {
+            _discordSender = discordSender;
+        }
+
         [HttpGet("TestEndpoint")]
         public string TestEndpoint()
         {
             return "Endpoint works!";
+        }
+
+        [HttpPost("SendDiscordDm")]
+        public async Task<ObjectResult> SendDiscordDm(
+            [FromHeader(Name ="message")] string message,
+            [FromHeader(Name ="ids")] string[] ids)
+        {
+            await _discordSender.SendDm(message, ids);
+
+            return Ok("Message Sent");
+        }
+
+        [HttpGet("SendDiscordMessage")]
+        public async Task<ObjectResult> SendDiscordMessage(
+            [FromHeader(Name = "message")] string message,
+            [FromHeader(Name = "ids")] string[] ids)
+        {
+            await _discordSender.SendMessageToChannel(message, ids);
+
+            return Ok("Message Sent");
         }
     }
 }

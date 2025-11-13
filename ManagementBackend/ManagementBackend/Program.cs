@@ -12,6 +12,9 @@ namespace ManagementBackend
 
             // Add services to the container.
             var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+            if (jwtSettings == null)
+                throw new Exception("JwtSettings section is missing in configuration.");
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -37,6 +40,13 @@ namespace ManagementBackend
             builder.Services.AddOpenApi();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Add DiscordMessageSender
+            var discordBotIp = builder.Configuration.GetSection("DiscordBotIp").Get<string>();
+            if (discordBotIp == null)
+                throw new Exception("DiscordBotIp section is missing in configuration.");
+            var discordMessageSender = new DiscordMessageSender(discordBotIp);
+            builder.Services.AddSingleton(discordMessageSender);
 
             var app = builder.Build();
 
