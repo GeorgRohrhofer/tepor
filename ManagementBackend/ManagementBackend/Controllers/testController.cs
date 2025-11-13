@@ -41,5 +41,11 @@ namespace ManagementBackend.Controllers
 
             return Ok("Message Sent");
         }
+
+        [HttpGet("WhoAmI")]
+        public string WhoAmI()
+        {
+            return User.FindFirst("preferred_username")?.Value ?? "No username found.";
+        }
     }
 }
