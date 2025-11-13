@@ -79,7 +79,7 @@ build_discordbot:
     - ruff check DiscordBot
   rules:
     - exists:
-        - DiscordBot/script.py
+        - DiscordBot/main.py
 
 test_discordbot:
   stage: test
