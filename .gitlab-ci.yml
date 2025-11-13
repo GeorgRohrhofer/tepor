@@ -76,7 +76,7 @@ build_discordbot:
     - pip install -r requirements.txt
     - pip install ruff
   script:
-    - ruff check DiscordBot
+    - ruff check .
   rules:
     - exists:
         - DiscordBot/main.py
