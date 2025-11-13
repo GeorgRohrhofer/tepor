@@ -16,10 +16,14 @@ int main()
 
     for (auto s : res) {
         cout << s << endl; 
+        cout << "------" << endl;
     }
 
     string containerName = d.startContainer("marctv/minecraft-papermc-server:1.21.10-91");
     cout << containerName << endl;
+    this_thread::sleep_for(chrono::milliseconds(3000));
+    d.restartContainer(containerName);
+
     this_thread::sleep_for(chrono::milliseconds(3000));
     d.stopContainer(containerName);
     return 0;
