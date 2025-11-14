@@ -143,6 +143,11 @@ public:
     makeRequest(endpoint, "POST");
   }
 
+  void restartContainer(const std::string& containerIdOrName, int timeout) {
+    std::string endpoint = "/containers/" + containerIdOrName + "/restart";
+    makeRequest(endpoint, "POST");
+  }
+
   void removeContainer(const std::string& containerIdOrName, bool force) {
     std::string endpoint = "/containers/" + containerIdOrName + "?force=" + (force ? "true" : "false");
     makeRequest(endpoint, "DELETE");
@@ -193,6 +198,10 @@ std::string Docker::startContainer(
 
 void Docker::stopContainer(const std::string& containerIdOrName, int timeout) {
   pImpl->stopContainer(containerIdOrName, timeout);
+}
+
+void Docker::restartContainer(const std::string& containerIdOrName, int timeout) {
+  pImpl->restartContainer(containerIdOrName, timeout);
 }
 
 void Docker::removeContainer(const std::string& containerIdOrName, bool force) {
