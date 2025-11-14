@@ -29,6 +29,7 @@ public:
 
   void pullImage(std::string& image);
   void stopContainer(const std::string& containerIdOrName, int timeout = 10);
+  void restartContainer(const std::string& containerIdOrName, int timeout = 10);
   void removeContainer(const std::string& containerIdOrName, bool force = false);
   std::string getContainerStatus(const std::string& containerIdOrName);
   std::vector<std::string> listContainers(bool all = false);
