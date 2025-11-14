@@ -49,5 +49,7 @@ int main(int argc, char *argv[]) {
 
   loop.exec();
 
+  delete mng;
+  delete db;
   return 0;
 }
