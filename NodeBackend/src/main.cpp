@@ -1,30 +1,31 @@
-#include <iostream>
-#include <ostream> 
-#include <thread>
+#include <QCoreApplication>
+#include <QEventLoop>
+#include <QObject>
+#include <QTimer>
 #include <chrono>
+#include <iostream>
+#include <thread>
 
+#include "NetworkManager.h"
 #include "dockerlib.h"
 
 using namespace std;
 
-int main()
-{
-    cout << "Hello World" << endl;
-    Docker d = {};
+int main(int argc, char *argv[]) {
+  QCoreApplication app(argc, argv);
+  QEventLoop loop;
 
-    auto res = d.listContainers();
+  NetworkManager *mng = new NetworkManager(nullptr);
+  QObject::connect(mng, &NetworkManager::messageReceived, [&](QByteArray data) {
+    cout << QString(data).toStdString() << endl;
+    loop.quit();
+  });
 
-    for (auto s : res) {
-        cout << s << endl; 
-        cout << "------" << endl;
-    }
+  mng->connectToServer("localhost", 8080);
+  mng->waitForConnection();
+  mng->sendMessage("test");
 
-    string containerName = d.startContainer("marctv/minecraft-papermc-server:1.21.10-91");
-    cout << containerName << endl;
-    this_thread::sleep_for(chrono::milliseconds(3000));
-    d.restartContainer(containerName);
+  loop.exec();
 
-    this_thread::sleep_for(chrono::milliseconds(3000));
-    d.stopContainer(containerName);
-    return 0;
+  return 0;
 }

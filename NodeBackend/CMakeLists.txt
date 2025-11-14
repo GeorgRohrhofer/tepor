@@ -6,8 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Qt6 Module
+find_package(Qt6 REQUIRED COMPONENTS Core Network)
+set(CMAKE_AUTOMOC ON)
+
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
+    "${PROJECT_SOURCE_DIR}/include/NetworkManager.h"
 )
 
 add_subdirectory(libs/StringUtils)
@@ -35,4 +40,9 @@ install(TARGETS NodeBackend
 install(TARGETS dockerlib
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Qt6::Core
+    Qt6::Network
 )
