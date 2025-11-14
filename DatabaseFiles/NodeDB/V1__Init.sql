@@ -1,0 +1,8 @@
+CREATE TABLE World (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    hash TEXT NOT NULL,
+    config TEXT,
+    owner_id INTEGER NOT NULL,
+    FOREIGN KEY (owner_id) REFERENCES TeporUser(id) ON DELETE CASCADE
+);

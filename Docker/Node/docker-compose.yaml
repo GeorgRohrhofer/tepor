@@ -25,4 +25,4 @@ services:
       - -locations=filesystem:/flyway/sql
       - migrate
     volumes:
-      - .:/flyway/sql 
+      - ../../DatabaseFiles/NodeDB:/flyway/sql 
