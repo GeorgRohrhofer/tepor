@@ -7,7 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Qt6 Module
-find_package(Qt6 REQUIRED COMPONENTS Core Network)
+find_package(Qt6 REQUIRED COMPONENTS Core Network Sql)
 set(CMAKE_AUTOMOC ON)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
@@ -45,4 +45,5 @@ install(TARGETS dockerlib
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Network
+    Qt6::Sql
 )
