@@ -11,7 +11,7 @@ class DatabaseManager
   private:
     QSqlDatabase db;
   public:
-    DatabaseManager();
+    DatabaseManager(QString path);
     ~DatabaseManager();
 
     std::vector<std::unordered_map<QString, QVariant>> executeQuery(QString query);

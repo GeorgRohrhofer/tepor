@@ -4,9 +4,9 @@
 #include <QSqlRecord>
 #include <QSqlError>
 
-DatabaseManager::DatabaseManager() {
+DatabaseManager::DatabaseManager(QString path) {
   db = QSqlDatabase::addDatabase("QSQLITE");
-  db.setDatabaseName("/flyway/sqlite.db");
+  db.setDatabaseName(path);
   
   if (!db.open()) {
     qCritical() << "Database error: " << db.lastError().text();

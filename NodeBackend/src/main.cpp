@@ -13,9 +13,18 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
+  // CLI setup
+  CLI::App cliApp{"NodeBackend"};
+  
+  string dbPath = "/flyway/sqlite.db"; 
+  cliApp.add_option("-d, --database", dbPath, "Path to the sqlite database");
+
+  CLI11_PARSE(cliApp, argc, argv);
+
   QCoreApplication app(argc, argv);
   QEventLoop loop;
-  DatabaseManager *db = new DatabaseManager();
+  DatabaseManager *db = new DatabaseManager(QString(dbPath.c_str()));
+
   try {
     db->executeCommand("CREATE TABLE World (name TEXT, hash TEXT)");
   }
