@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <iostream>
 #include <stdexcept>
+#include <CLI/CLI.hpp>
 
 #include "NetworkManager.h"
 #include "dockerlib.h"

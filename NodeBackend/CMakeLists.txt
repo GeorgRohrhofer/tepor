@@ -6,6 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+include(FetchContent)
+FetchContent_Declare(
+  CLI11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG v2.6.1
+)
+FetchContent_MakeAvailable(CLI11)
+
 # Qt6 Module
 find_package(Qt6 REQUIRED COMPONENTS Core Network Sql)
 set(CMAKE_AUTOMOC ON)
@@ -46,4 +54,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Network
     Qt6::Sql
+    CLI11::CLI11
 )
