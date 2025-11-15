@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, request
 from flask_cors import CORS
 import discordBot as dbot
 from threading import Thread
