@@ -26,13 +26,14 @@ int main(int argc, char *argv[]) {
   DatabaseManager *db = new DatabaseManager(QString(dbPath.c_str()));
 
   try {
-    db->executeCommand("CREATE TABLE World (name TEXT, hash TEXT)");
+    db->executeCommand("CREATE TABLE World (id INTEGER, name TEXT, hash TEXT, config TEXT)");
   }
   catch (const std::runtime_error &e) {
     // Database setup has already been ran once
   }
 
-  db->executeCommand("INSERT INTO World (name, hash) VALUES ('Worllld', '1234567890')");
+  // db->executeCommand("INSERT INTO World (name, hash) VALUES ('Worllld', '1234567890')");
+  db->addWorld(2, "WORLD", "42", "empty");
   auto result = db->executeQuery("SELECT * FROM World");
 
   cout << result.size() << endl;
