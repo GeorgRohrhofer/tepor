@@ -70,13 +70,16 @@ test_webui:
 build_discordbot:
   stage: build
   image: python:3.11
-  script:
+  before_script:
     - echo "Installing dependencies..."
     - cd DiscordBot
-    #- pip install -r requirements.txt
+    - pip install -r requirements.txt
+    - pip install ruff
+  script:
+    - ruff check .
   rules:
     - exists:
-        - DiscordBot/script.py
+        - DiscordBot/main.py
 
 test_discordbot:
   stage: test
