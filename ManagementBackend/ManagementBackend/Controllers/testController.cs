@@ -1,12 +1,13 @@
 ﻿using ManagementBackend.resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace ManagementBackend.Controllers
 {
     [ApiController]
     [Route("TestApi")]
-    [Authorize]
+    [Authorize(Roles = "admin")]
     public class TestController : ControllerBase
     {
         private readonly DiscordMessageSender _discordSender;
