@@ -1,15 +1,19 @@
-To use this app you need to download and install keycloak locally (or run in a docker).
-Use realm-export.json config file to load the realm, clients and users.
-To get the Bearer token from Keycloak make the following request (with Postman):
-POST: http://localhost:8080/realms/tepor-auth/protocol/openid-connect/token
-Body -> x-www-form-uriencode:
-Key			Value
-grant_type	password
-client_id	kekClient
-username	kek
-password	kek
+Keycloak is deployed on https://tozm.net:8080 \
+To get the Bearer token which is needed to access the API there are 2 Options:
+1. Call the KeyCloak API directly.
+	- Post: https://tozm.net:8080/realms/tepor-auth/protocol/openid-connect/token
+	- Body -> x-www-form-uriencode:
+		- grant_type=password
+		- client_id=kekClient
+		- username=\<username>
+		- password=\<password>
+2. Use the Keycloak UI:
+	- Go to: https://tozm.net:8080/realms/tepor-auth/account/
+	- Login with your username and password
+	- The Bearer token can be found in the http Response
 
-This is a test user and will not be used in production for obvious safety reasons.
-After making this request you will receive the bearer token.
-When making a request to the API (e.g. GET: https://localhost:4444/WeatherForecast)
-paste the Token under Authorization -> Bearer Token.
+You can also register a new user on the Keycloak UI.\
+This user will automatically get the "user" role assigned.\
+Currently there is only one user with the "admin" role: kek.\
+To access the UI and Node Register Endpoint only the user role is needed.
+The admin role is only needed to access the TestApi.
