@@ -16,7 +16,7 @@ namespace ManagementBackend.resources
 
         public async Task SendMessageToChannel(string messageContent, string[] channelIds)
         {
-            var messageObj = new DiscordMessage(messageContent, channelIds);
+            var messageObj = new DiscordChannelMessage(messageContent, channelIds);
             var messageJson = JsonSerializer.Serialize(messageObj);
             var content = new StringContent(messageJson, Encoding.UTF8, "application/json");
 
@@ -29,7 +29,7 @@ namespace ManagementBackend.resources
 
         public async Task SendDm(string messageContent, string[] userIds)
         {
-            var messageObj = new DiscordMessage(messageContent, userIds);
+            var messageObj = new DiscordDm(messageContent, userIds);
             var messageJson = JsonSerializer.Serialize(messageObj);
             var content = new StringContent(messageJson, Encoding.UTF8, "application/json");
 
@@ -41,16 +41,29 @@ namespace ManagementBackend.resources
         }
     }
 
-    public class DiscordMessage
+    public class DiscordDm
     {
-        public string Message { get; set; }
+        public string messageContent { get; set; }
 
-        public string[] Ids { get; set; }
+        public string[] directs { get; set; }
 
-        public DiscordMessage(string message, string[] ids)
+        public DiscordDm(string message, string[] ids)
         {
-            Message = message;
-            Ids = ids;
+            messageContent = message;
+            directs = ids;
+        }
+    }
+
+    public class DiscordChannelMessage
+    {
+        public string messageContent { get; set; }
+
+        public string[] channels { get; set; }
+
+        public DiscordChannelMessage(string message, string[] ids)
+        {
+            messageContent = message;
+            channels = ids;
         }
     }
 }
