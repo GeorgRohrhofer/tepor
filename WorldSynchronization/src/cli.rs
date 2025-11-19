@@ -1,7 +1,9 @@
-use clap::{Args, Parser, Subcommand, ValueEnum};
+//! cli interface
 
 #[cfg(all(feature = "logging", not(test)))]
 use crate::logging::LogLevel;
+use crate::prelude::*;
+use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -25,7 +27,16 @@ pub(crate) enum Mode {
     Send(SendArgs),
     #[command(visible_alias = "rec")]
     Receive(ReceiveArgs),
+    Checkpoint(CheckpointArgs),
 }
+
+#[derive(Args, Debug)]
+/// print the status of this folder
+pub(crate) struct StatusArgs {}
+
+#[derive(Args, Debug)]
+/// create a new checkpoint, that can be sent to other nodes
+pub(crate) struct CheckpointArgs {}
 
 #[derive(Debug, Args)]
 /// Send the contents of a Directory to a target

@@ -74,3 +74,56 @@ fn start_connection(target: impl AsRef<str> + std::fmt::Debug) {
 
     // socked
 }
+
+/// implement `From` for every branch arm
+/// # Example
+/// ```rust
+/// enum Value {
+///     Number(u32),
+///     String(String),
+/// }
+///
+/// impl_enum_from!(Value with
+///     u32 as Number,
+///     String,
+/// );
+/// ```
+#[macro_export]
+macro_rules! impl_enum_from {
+    ($name:ident with ) => {};
+    ($name:ident with $label:ident, $($rest:tt)* ) => {
+        $crate::impl_enum_from!($name with $label as $label, $($rest)* );
+    };
+    ($name:ident with $from:ty as $label:ident, $($rest:tt)* ) => {
+        $crate::impl_enum_from!($name with $($rest)* );
+        impl From<$from> for $name {
+            #[inline]
+            fn from(value: $from) -> Self {
+                Self::$label(value)
+            }
+        }
+    };
+}
+
+/// contains info about the error of loading from or saving to a toml file
+pub(crate) enum SaveError {
+    IO(std::io::Error),
+    TomlSer(toml::ser::Error),
+    TomlDes(toml::de::Error),
+}
+
+impl_enum_from!(SaveError with
+    std::io::Error as IO,
+    toml::ser::Error as TomlSer,
+    toml::de::Error as TomlDes,
+);
+
+#[macro_export]
+/// the info directory, useful for `concat!` calls
+macro_rules! info_dir {
+    () => {
+        ".world-sync"
+    };
+}
+/// the directory at which metadata is stored
+pub(crate) const INFO_DIR: &str = info_dir!();
