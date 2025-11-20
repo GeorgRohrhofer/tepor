@@ -1,9 +1,11 @@
+#![allow(dead_code)]
+
 use crate::prelude::*;
 use std::{sync::Mutex, sync::OnceLock};
 
-pub(crate) static LOG_PATH: OnceLock<Box<str>> = OnceLock::new();
 pub(crate) static LOG_LEVEL: OnceLock<LogLevel> = OnceLock::new();
-pub(crate) static LOGS: Mutex<Vec<Box<str>>> = Mutex::new(vec![]);
+static LOG_PATH: OnceLock<Box<str>> = OnceLock::new();
+static LOGS: Mutex<Vec<Box<str>>> = Mutex::new(vec![]);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum, Default, PartialOrd, Ord)]
 pub(crate) enum LogLevel {
@@ -15,15 +17,44 @@ pub(crate) enum LogLevel {
     Off,
 }
 
+impl std::fmt::Display for LogLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self, f)
+    }
+}
+
+/// write to the log file, with the specified log level
+pub(crate) fn log_msg(level: LogLevel, msg: impl Into<Box<str>>) {
+    let Ok(mut lock) = LOGS.lock() else {
+        eprintln!("cannot aquire log");
+        return;
+    };
+
+    // split log into its lines
+    let msg = msg.into();
+    let mut lines = msg.lines();
+
+    // push header with time
+    let now = ::chrono::Utc::now();
+    if let Some(first) = lines.next() {
+        lock.push(format!("{now} [{level:8?}] {first}\n").into());
+    }
+
+    // push rest of the lines
+    while let Some(next) = lines.next() {
+        lock.push(format!("\t{next}\n").into())
+    }
+}
+
+/// initialize the logging process
+/// this function is expected to always be called once, even if logging is off
 pub(crate) fn init(folder: Box<str>, level: LogLevel) {
     let _ = LOG_LEVEL.set(level);
     let _ = LOG_PATH.set(folder);
 
     let old_hook = std::panic::take_hook();
+    #[allow(unused_variables)]
     std::panic::set_hook(Box::new(move |info| {
-        // previous hook
-        old_hook(info);
-
         // location
         let location = match info.location() {
             Some(loc) => format!("{loc}"),
@@ -51,10 +82,14 @@ pub(crate) fn init(folder: Box<str>, level: LogLevel) {
 
         // write log to file
         finish();
+
+        // previous hook
+        old_hook(info);
     }));
 }
 
-/// write the log to a file
+/// finish the log process by saving the file
+/// this function is expected to always be called once, even if logging is off
 pub(crate) fn finish() {
     let Some(path) = LOG_PATH.get() else {
         return;

@@ -5,8 +5,10 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "*", features = ["derive"] }
-chrono = { version = "*", optional = true }
+serde = { version = "*", features = ["derive"] }
+toml = "*"
+chrono = "*"
 
 [features]
 default = ["logging"]
-logging = ["dep:chrono"]
+logging = []
