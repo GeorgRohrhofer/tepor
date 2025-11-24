@@ -54,7 +54,7 @@ Each message uses the following structure:
 
 ``` json
 {
-  "type": "HELOReq",
+  "type": "HELOResp",
   "data": {
     "active_id" : guid
   }
@@ -67,6 +67,7 @@ Each message uses the following structure:
 {
   "type": "ServerCreate",
   "data": {
+    "world_id" : "string",
     "config" : "string"
   }
 }
@@ -87,7 +88,7 @@ Each message uses the following structure:
 
 ``` json
 {
-  "type": "ServerStart",
+  "type": "ServerStop",
   "data": {
     "world_id" : "string"
   }
@@ -98,7 +99,7 @@ Each message uses the following structure:
 
 ``` json
 {
-  "type": "ServerStart",
+  "type": "ServerRestart",
   "data": {
     "world_id" : "string"
   }
@@ -132,6 +133,17 @@ Each message uses the following structure:
   "data": {
     "message" : "string",
     "current_version" : "string"
+  }
+}
+```
+
+## ERROR
+
+``` json
+{
+  "type": "ERROR",
+  "data": {
+    "message" : "string"
   }
 }
 ```
