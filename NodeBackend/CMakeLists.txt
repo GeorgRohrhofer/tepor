@@ -23,6 +23,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
     "${PROJECT_SOURCE_DIR}/include/NetworkManager.h"
     "${PROJECT_SOURCE_DIR}/include/ManagementNotifier.h"
+    "${PROJECT_SOURCE_DIR}/include/MinecraftInstance.h"
 )
 
 add_subdirectory(libs/StringUtils)
