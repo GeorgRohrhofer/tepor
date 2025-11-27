@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using SharedLibraries;
 
 namespace ClientMonitoringService
 {
@@ -26,7 +27,7 @@ namespace ClientMonitoringService
                 Console.WriteLine($"Disk Usage (/):  {diskUsage:F2}%");
                 Console.WriteLine($"Network (eth0):  RX={rx / 1024:F1} KB  TX={tx / 1024:F1} KB");
 
-                Thread.Sleep(2000);
+                Thread.Sleep(4000);
             }
         }
 

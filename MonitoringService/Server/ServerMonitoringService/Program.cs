@@ -4,7 +4,10 @@
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            MonitoringServer monitoringServer = new MonitoringServer();
+            monitoringServer.Start();
+
+
         }
     }
 }

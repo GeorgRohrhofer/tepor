@@ -2,9 +2,10 @@
 {
     public class MonitoringMessage
     {
-        public string MemoryUsage { get; set; } = string.Empty;
-        public string CpuUsage { get; set; } = string.Empty;
-        public string DiskUsage { get; set; } = string.Empty;
-        public string NetworkUsage { get; set; } = string.Empty;
+        public string NodeID { get; set; } = string.Empty;
+        public double MemoryUsage { get; set; } 
+        public double CpuUsage { get; set; }
+        public double DiskUsage { get; set; }
+        public double[] NetworkUsage { get; set; } = Array.Empty<double>();
     }
 }

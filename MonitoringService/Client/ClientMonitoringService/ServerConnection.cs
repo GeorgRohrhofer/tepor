@@ -5,4 +5,9 @@ using System.Text;
 
 namespace ClientMonitoringService
 {
+    public class ServerConnection
+    {
+        private string serverHost;
+        private int serverPort;
+    }
 }

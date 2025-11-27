@@ -1,10 +1,10 @@
 To monitor the individual nodes, they periodically send some sytem data to the Management Server.
 They send: 
 - their Node ID (string)
-- Memory Usage (float - as percentage)
-- Cpu Usage (float - as percentage)
-- Disk Usage (float - as percentage)
-- NetworkUsage (float array - [rx, tx])
+- Memory Usage (double - as percentage)
+- Cpu Usage (double - as percentage)
+- Disk Usage (double - as percentage)
+- NetworkUsage (double array - [rx, tx])
 
 ```json
 {
