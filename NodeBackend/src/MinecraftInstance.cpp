@@ -1,6 +1,7 @@
 #include "MinecraftInstance.h"
 
 #include <QDebug>
+#include <QFileSystemWatcher>
 #include <string>
 
 int MinecraftInstance::instanceCount = 0;
@@ -16,7 +17,15 @@ MinecraftInstance::MinecraftInstance(std::string worldId, std::string config,
     docker = new Docker();
   }
 
+  // TODO: Add file mapping
+  containerId =
+      docker->createContainer("marctv/minecraft-papermc-server:1.21.10-91");
   instanceCount++;
+
+  watcher = new QFileSystemWatcher(this);
+  QObject::connect(watcher, &QFileSystemWatcher::directoryChanged, [&](QString path) {
+      onFilesChanged(path);
+  });
 }
 
 MinecraftInstance::~MinecraftInstance() {
@@ -26,6 +35,8 @@ MinecraftInstance::~MinecraftInstance() {
     delete docker;
     docker = nullptr;
   }
+
+  delete watcher;
 }
 
 std::string MinecraftInstance::GetWorldId() { return worldId; }
@@ -36,17 +47,11 @@ std::string MinecraftInstance::GetWorldStore() { return worldStore; }
 
 std::string MinecraftInstance::GetContainerId() { return containerId; }
 
-void MinecraftInstance::start() {
-  docker->startContainer(containerId);
-}
+void MinecraftInstance::start() { docker->startContainer(containerId); }
 
-void MinecraftInstance::stop() {
-  docker->stopContainer(containerId);
-}
+void MinecraftInstance::stop() { docker->stopContainer(containerId); }
 
-void MinecraftInstance::restart() {
-  docker->restartContainer(containerId);
-}
+void MinecraftInstance::restart() { docker->restartContainer(containerId); }
 
 void MinecraftInstance::deleteWorld() {
   docker->removeContainer(containerId);
@@ -59,7 +64,8 @@ void MinecraftInstance::updateConfig(std::string config) {
   // TODO: Implement
 }
 
-void MinecraftInstance::onFilesChanged(const QStringList &files) {
-  qDebug() << "Files changed: " << files;
+void MinecraftInstance::onFilesChanged(QString path) {
+  qDebug() << "Files changed: " << path;
   // TODO: Implement
+  emit wordSaved();
 }

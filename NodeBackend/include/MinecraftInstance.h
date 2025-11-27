@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <qfilesystemwatcher.h>
 #include <string>
 #include <dockerlib.h>
 
@@ -29,12 +30,13 @@ public:
   void updateConfig(std::string config);
 
 private slots:
-  void onFilesChanged(const QStringList &files);
+  void onFilesChanged(QString files);
 
 private:
   static Docker *docker;
   static int instanceCount;
 
+  QFileSystemWatcher *watcher;
   std::string worldId;
   std::string config;
   std::string worldStore;
