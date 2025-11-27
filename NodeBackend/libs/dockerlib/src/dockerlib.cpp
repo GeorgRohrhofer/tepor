@@ -78,7 +78,7 @@ public:
     return response;
   }
 
-  std::string startContainer(
+  std::string createContainer(
     const std::string& image, 
     const std::string& containerName,
     const std::vector<std::string>& env,
@@ -113,21 +113,24 @@ public:
     json responseJson = json::parse(response);
       
     if (responseJson.contains("Id")) {
-      std::string containerId = responseJson["Id"];
-      std::string startEndpoint = "/containers/" + containerId + "/start";
-      std::string res = makeRequest(startEndpoint, "POST");
-      return containerId;
+      return responseJson["Id"];
     } else if (isFirstTry){
       // Image not found. 
       // Pull from hub.docker.com
       pullImage(image);
-      return startContainer(image, containerName, env, portBindings, false);
+      return createContainer(image, containerName, env, portBindings, false);
     } else {
       throw std::runtime_error("Error during container creation");
     }
   }
 
-  void pullImage(std::string image)
+  void startContainer(const std::string &containerIdOrName) {
+      std::string containerId = containerIdOrName;
+      std::string startEndpoint = "/containers/" + containerId + "/start";
+      std::string res = makeRequest(startEndpoint, "POST");
+  }
+
+  void pullImage(const std::string image)
   {
     std::string endpoint = "/images/create?fromImage=" + image;
 
@@ -187,13 +190,17 @@ Docker::~Docker() = default;
 Docker::Docker(Docker&&) noexcept = default;
 Docker& Docker::operator=(Docker&&) noexcept = default;
 
-std::string Docker::startContainer(
+std::string Docker::createContainer(
     const std::string& image, 
     const std::string& containerName, 
     const std::vector<std::string>& env, 
     const std::map<std::string, std::string>& portBindings
 ) {
-  return pImpl->startContainer(image, containerName, env, portBindings);
+  return pImpl->createContainer(image, containerName, env, portBindings);
+}
+
+void Docker::startContainer(const std::string &containerIdOrName) {
+  pImpl->startContainer(containerIdOrName);
 }
 
 void Docker::stopContainer(const std::string& containerIdOrName, int timeout) {
@@ -216,7 +223,7 @@ std::vector<std::string> Docker::listContainers(bool all) {
   return pImpl->listContainers(all);
 }
 
-void Docker::pullImage(std::string& image) {
+void Docker::pullImage(const std::string& image) {
   pImpl->pullImage(image);
 }
 
