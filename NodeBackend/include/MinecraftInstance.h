@@ -11,7 +11,7 @@ class MinecraftInstance : public QObject {
   Q_OBJECT
 public:
   MinecraftInstance(std::string worldId, std::string config,
-                    std::string worldStore);
+                    std::string worldStore, int port);
   ~MinecraftInstance();
 
 signals:

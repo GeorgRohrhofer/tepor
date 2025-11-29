@@ -24,7 +24,8 @@ public:
     const std::string& image, 
     const std::string& containerName = "",
     const std::vector<std::string>& env = {},
-    const std::map<std::string, std::string>& portBindings = {}
+    const std::map<std::string, std::string>& portBindings = {},
+    const std::map<std::string, std::string>& volumeBindings = {}
   );
 
   void startContainer(const std::string& containerIdOrName);

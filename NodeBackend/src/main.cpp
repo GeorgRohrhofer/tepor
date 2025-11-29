@@ -2,9 +2,10 @@
 #include <QDebug>
 #include <QEventLoop>
 #include <QObject>
+#include <QTcpServer>
 #include <QTimer>
 #include <QUuid>
-#include <iostream>
+#include <filesystem>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qobject.h>
@@ -12,24 +13,14 @@
 
 #include "ManagementNotifier.h"
 #include "MinecraftInstance.h"
-#include "NetworkManager.h"
 
 using namespace std;
+
+bool isPortAvailable(quint16 port);
 
 int main(int argc, char *argv[]) {
   QCoreApplication app(argc, argv);
   QEventLoop loop;
-
-  // NetworkManager *mng = new NetworkManager(nullptr);
-  // QObject::connect(mng, &NetworkManager::messageReceived, [&](QByteArray
-  // data) {
-  //   cout << QString(data).toStdString() << endl;
-  //   loop.quit();
-  // });
-  //
-  // mng->connectToServer("localhost", 8080);
-  // mng->waitForConnection();
-  // mng->sendMessage("test");
 
   ManagementNotifier *mngr = new ManagementNotifier(nullptr);
 
@@ -39,9 +30,26 @@ int main(int argc, char *argv[]) {
   QObject::connect(mngr, &ManagementNotifier::disconnected, [&]() {});
   QObject::connect(mngr, &ManagementNotifier::serverCreateReceived,
                    [&](std::string worldId, std::string config) {
-                     // TODO: Generate file path for each world
-                     instances.insert(
-                         worldId, new MinecraftInstance(worldId, config, "/"));
+                     filesystem::path worldPath =
+                         filesystem::path("/srv/tepor/worlds") / worldId;
+
+                     if (!filesystem::exists(worldPath)) {
+                       filesystem::create_directories(worldPath);
+                     }
+
+                     int port = 25565;
+                     while (!isPortAvailable(port)) {
+                       port++;
+
+                       if (port > 65535) {
+                         qCritical() << "No free port found";
+                         return;
+                       }
+                     }
+
+                     instances.insert(worldId, new MinecraftInstance(
+                                                   worldId, config,
+                                                   worldPath.string(), port));
                    });
 
   QObject::connect(mngr, &ManagementNotifier::serverStartReceived,
@@ -93,4 +101,11 @@ int main(int argc, char *argv[]) {
   delete mngr;
 
   return 0;
+}
+
+bool isPortAvailable(quint16 port) {
+  QTcpServer server;
+  bool success = server.listen(QHostAddress::Any, port);
+  server.close();
+  return success;
 }

@@ -12,14 +12,13 @@ class ManagementNotifier : public QObject {
 public:
   explicit ManagementNotifier(QObject *parent = nullptr);
   ~ManagementNotifier();
-  // TODO: Define parameters
   void sendWorldSaved(std::string worldName);
 
 signals:
   void connected();
   void disconnected();
   void registered();
-  // TODO: Define parameter types
+
   void serverCreateReceived(std::string worldId, std::string config);
   void serverStartReceived(std::string worldId);
   void serverRestartReceived(std::string worldId);
