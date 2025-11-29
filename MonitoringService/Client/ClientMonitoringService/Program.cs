@@ -32,7 +32,7 @@ namespace ClientMonitoringService
                 Required = true,
             };
 
-            RootCommand rootCommand = new("Sample app for System.CommandLine");
+            RootCommand rootCommand = new("Start Client Monitoring Service");
             rootCommand.Options.Add(ipaddressOption);
             rootCommand.Options.Add(portOption);
             rootCommand.Options.Add(nodeidOption);

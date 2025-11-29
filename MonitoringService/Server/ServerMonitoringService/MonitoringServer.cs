@@ -1,26 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using SharedLibraries;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
-using SharedLibraries;
 
 namespace ServerMonitoringService
 {
     public class MonitoringServer
     {
-        private int port = 6942;
+        private int _port;
 
         List<Thread> threadList = new();
-        private readonly JsonSerializerOptions jsonOptions;
-        bool isRunning = true;
+        private readonly JsonSerializerOptions _jsonOptions;
+        bool _isRunning = true;
 
 
-        public MonitoringServer()
+        public MonitoringServer(int port)
         {
-            jsonOptions = new JsonSerializerOptions
+            _port = port;
+
+            _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 WriteIndented = false
@@ -36,11 +35,11 @@ namespace ServerMonitoringService
 
         public void Listener()
         {
-            TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
+            TcpListener tcpListener = new TcpListener(IPAddress.Any, _port);
             tcpListener.Start();
-            Console.WriteLine($"Monitoring Server started on Port {port}");
+            Console.WriteLine($"Monitoring Server started on Port {_port}");
 
-            while (isRunning)
+            while (_isRunning)
             {
                 try
                 {
@@ -65,7 +64,7 @@ namespace ServerMonitoringService
             if (clientObject != null && clientObject is TcpClient client)
             {
                 NetworkStream stream = client.GetStream();
-                while (isRunning && client.Connected)
+                while (_isRunning && client.Connected)
                 {
                     if (!stream.DataAvailable)
                     {
@@ -79,12 +78,11 @@ namespace ServerMonitoringService
                         break;
                     string jsonString = Encoding.UTF8.GetString(bytesReceived).TrimEnd('\0');
 
-                    Console.WriteLine(bytesReceived[0]);
                     if (bytesReceived[0] == 1)
                     {
                         try
                         {
-                            var dataMessage = JsonSerializer.Deserialize<MonitoringMessage>(jsonString[1..], jsonOptions);
+                            var dataMessage = JsonSerializer.Deserialize<MonitoringMessage>(jsonString[1..], _jsonOptions);
 
                             if (dataMessage == null)
                             {
@@ -105,7 +103,6 @@ namespace ServerMonitoringService
                     }
                     else
                     {
-                        Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
                         throw new FormatException("Message version invalid.");
                     }
                 }
@@ -125,7 +122,7 @@ namespace ServerMonitoringService
 
         public void Stop()
         {
-            isRunning = false;
+            _isRunning = false;
             Console.WriteLine("Server is shutting down...");
         }
     }

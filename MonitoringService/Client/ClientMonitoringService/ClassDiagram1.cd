@@ -22,9 +22,9 @@
     </TypeIdentifier>
   </Class>
   <Class Name="ClientMonitoringService.MonitoringService">
-    <Position X="3.75" Y="4.75" Width="3.5" />
+    <Position X="3.75" Y="4.25" Width="3.5" />
     <TypeIdentifier>
-      <HashCode>AAAAgAAAACAAAABAAAAAAAABAAAAAAAAIAAgAAAABAA=</HashCode>
+      <HashCode>AgAAAAEAACAAAAAAAIAIAAAAAAAAAAAAIABAAAAAAAA=</HashCode>
       <FileName>MonitoringService.cs</FileName>
     </TypeIdentifier>
   </Class>

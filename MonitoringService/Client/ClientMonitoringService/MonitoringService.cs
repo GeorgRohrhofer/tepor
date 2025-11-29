@@ -32,7 +32,7 @@ namespace ClientMonitoringService
             _isRunning = false;
         }
 
-        public void _MonitorAndSend()
+        private void _MonitorAndSend()
         {
             while (_isRunning)
             {
@@ -42,7 +42,7 @@ namespace ClientMonitoringService
                 bool success = _dataTransmitter.SendSystemData(message);
                 if (!success)
                 {
-                    // Handle transmission failure (e.g., log error, retry, etc.)
+                    Console.WriteLine("Failed to send monitoring data to server.");
                 }
                 Thread.Sleep(4000);
             }

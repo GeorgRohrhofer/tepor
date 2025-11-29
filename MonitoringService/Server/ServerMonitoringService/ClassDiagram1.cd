@@ -3,15 +3,8 @@
   <Class Name="ServerMonitoringService.MonitoringServer">
     <Position X="0.5" Y="1" Width="5.5" />
     <TypeIdentifier>
-      <HashCode>AIAAAAAAAAAAAABAAIAACAAAAAAAAACAIAAAAAAEAAA=</HashCode>
+      <HashCode>AIAAAAAAACAAAAgAAIAACAAAAAAAAACAIIAAAAAAAAA=</HashCode>
       <FileName>MonitoringServer.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="ServerMonitoringService.ListenerThreadArgs">
-    <Position X="6.5" Y="1" Width="1.75" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>ListenerThreadArgs.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Font Name="Segoe UI" Size="9" />
