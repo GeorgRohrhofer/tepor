@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ClientMonitoringService": {
+      "commandName": "Project",
+      "commandLineArgs": "--ipaddress \"127.0.0.1\" --port 6942"
+    }
+  }
+}

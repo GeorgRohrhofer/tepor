@@ -8,16 +8,16 @@
     </TypeIdentifier>
   </Class>
   <Class Name="ClientMonitoringService.ServerConnection">
-    <Position X="3.75" Y="1.75" Width="1.75" />
+    <Position X="8.5" Y="1.5" Width="3.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAEAAAEAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAIAAAAAAAAAABAAABAAAAQAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ServerConnection.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ClientMonitoringService.DataTransmitter">
-    <Position X="6" Y="1.75" Width="2.75" />
+    <Position X="4" Y="1.5" Width="3.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAABAAAAAAAAAABAAAAAAAAEAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAABBA=</HashCode>
       <FileName>DataTransmitter.cs</FileName>
     </TypeIdentifier>
   </Class>

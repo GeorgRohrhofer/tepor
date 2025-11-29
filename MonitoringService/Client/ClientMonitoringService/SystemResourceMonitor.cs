@@ -9,26 +9,21 @@ namespace ClientMonitoringService
 {
     public class SystemResourceMonitor
     {
-        public void Monitor()
+        public SystemResourceMonitor()
         {
-            Console.WriteLine("=== Linux System Resource Monitor ===\n");
+        }
 
-            while (true)
-            {
-                double cpuUsage = GetCpuUsage();
-                double memoryUsage = GetMemoryUsage();
-                double diskUsage = GetDiskUsage("/");
-                var (rx, tx) = GetNetworkUsage("eth0");
+        public MonitoringMessage Monitor()
+        {
+            MonitoringMessage message = new MonitoringMessage();
 
-                Console.Clear();
-                Console.WriteLine("=== Linux System Resource Monitor ===");
-                Console.WriteLine($"Memory Usage:    {memoryUsage:F2}%");
-                Console.WriteLine($"CPU Usage:       {cpuUsage:F2}%");
-                Console.WriteLine($"Disk Usage (/):  {diskUsage:F2}%");
-                Console.WriteLine($"Network (eth0):  RX={rx / 1024:F1} KB  TX={tx / 1024:F1} KB");
+            message.CpuUsage = GetCpuUsage();
+            message.MemoryUsage = GetMemoryUsage();
+            message.DiskUsage = GetDiskUsage("/");
+            var (rx, tx) = GetNetworkUsage("eth0");
+            message.NetworkUsage = new double[] { rx, tx };
 
-                Thread.Sleep(4000);
-            }
+            return message;
         }
 
         static double GetCpuUsage()

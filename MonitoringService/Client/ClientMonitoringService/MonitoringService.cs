@@ -2,34 +2,50 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SharedLibraries;
 
 namespace ClientMonitoringService
 {
     public class MonitoringService
     {
-        private SystemResourceMonitor systemResourceMonitor;
-        private DataTransmitter dataTransmitter;
-        private ServerConnection serverConnection;
-        private bool isRunning;
+        private SystemResourceMonitor _systemResourceMonitor;
+        private DataTransmitter _dataTransmitter;
+        private bool _isRunning;
+        private string _nodeID;
 
-        public MonitoringService(string serverHost, int serverPort)
+        public MonitoringService(string serverHost, int serverPort, string nodeID)
         {
-            throw new System.NotImplementedException();
+            _systemResourceMonitor = new SystemResourceMonitor();
+            _dataTransmitter = new DataTransmitter(serverHost, serverPort);
+            _isRunning = false;
+            _nodeID = nodeID;
         }
 
         public void Start()
         {
-            throw new System.NotImplementedException();
+            _isRunning = true;
+            _MonitorAndSend();
         }
 
         public void Stop()
         {
-            throw new System.NotImplementedException();
+            _isRunning = false;
         }
 
-        public void MonitorAndSend()
+        public void _MonitorAndSend()
         {
-            throw new System.NotImplementedException();
+            while (_isRunning)
+            {
+                MonitoringMessage message = _systemResourceMonitor.Monitor();
+                message.NodeID = _nodeID;
+
+                bool success = _dataTransmitter.SendSystemData(message);
+                if (!success)
+                {
+                    // Handle transmission failure (e.g., log error, retry, etc.)
+                }
+                Thread.Sleep(4000);
+            }
         }
     }
 }

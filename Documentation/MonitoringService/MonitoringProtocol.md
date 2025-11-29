@@ -15,6 +15,9 @@ They send:
     "NetworkUsage" : [3000, 1500]
 }
 ```
+
+Additionally, the first byte of the message idicates the current protocol version.
+
 Once the Management Server does not receive this "heartbeat" in the determined time, the Node will be considered to be offline. 
 
 (Additionally the version will be sent as byte at start of the message. Might be implemented at a later point.)

@@ -11,6 +11,8 @@ namespace ServerMonitoringService
 {
     public class MonitoringServer
     {
+        private int port = 6942;
+
         List<Thread> threadList = new();
         private readonly JsonSerializerOptions jsonOptions;
         bool isRunning = true;
@@ -34,19 +36,21 @@ namespace ServerMonitoringService
 
         public void Listener()
         {
-            TcpListener tcpListener = new TcpListener(IPAddress.Any, 6942);
+            TcpListener tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
-            Console.WriteLine("Monitoring Server started on Port 6942");
+            Console.WriteLine($"Monitoring Server started on Port {port}");
 
             while (isRunning)
             {
                 try
                 {
+                    Console.WriteLine("Waiting for client connections...");
                     TcpClient client = tcpListener.AcceptTcpClient();
 
                     Thread thread = new(ClientHandler);
                     thread.Start(client);
                     threadList.Add(thread);
+                    Console.WriteLine("Client connected: " + client.Client.RemoteEndPoint?.ToString());
                 }
                 catch (Exception ex)
                 {
@@ -75,25 +79,34 @@ namespace ServerMonitoringService
                         break;
                     string jsonString = Encoding.UTF8.GetString(bytesReceived).TrimEnd('\0');
 
-                    try
+                    Console.WriteLine(bytesReceived[0]);
+                    if (bytesReceived[0] == 1)
                     {
-                        var dataMessage = JsonSerializer.Deserialize<MonitoringMessage>(jsonString, jsonOptions);
-
-                        if (dataMessage == null)
+                        try
                         {
-                            Console.WriteLine("Invalid message received");
-                            continue;
-                        }
+                            var dataMessage = JsonSerializer.Deserialize<MonitoringMessage>(jsonString[1..], jsonOptions);
 
-                        if (dataMessage != null)
+                            if (dataMessage == null)
+                            {
+                                Console.WriteLine("Invalid message received");
+                                continue;
+                            }
+
+                            if (dataMessage != null)
+                            {
+                                HandleMonitoringMessage(dataMessage, client.Client.RemoteEndPoint?.ToString() ?? "Unknown");
+                            }
+
+                        }
+                        catch (JsonException ex)
                         {
-                            HandleMonitoringMessage(dataMessage, client.Client.RemoteEndPoint?.ToString() ?? "Unknown");
+                            Console.WriteLine($"JSON Error: {ex.Message}");
                         }
-
                     }
-                    catch (JsonException ex)
+                    else
                     {
-                        Console.WriteLine($"JSON Error: {ex.Message}");
+                        Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+                        throw new FormatException("Message version invalid.");
                     }
                 }
             }

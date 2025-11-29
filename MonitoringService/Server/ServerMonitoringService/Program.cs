@@ -6,8 +6,6 @@
         {
             MonitoringServer monitoringServer = new MonitoringServer();
             monitoringServer.Start();
-
-
         }
     }
 }
