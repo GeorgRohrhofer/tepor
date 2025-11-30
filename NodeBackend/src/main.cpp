@@ -10,8 +10,10 @@
 #include <qmap.h>
 #include <qobject.h>
 #include <string>
+#include <CLI/CLI.hpp>
 
 #include "ManagementNotifier.h"
+#include "DatabaseManager.h"
 #include "MinecraftInstance.h"
 
 using namespace std;
