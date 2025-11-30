@@ -59,9 +59,7 @@ namespace ManagementBackend
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
             app.MapControllers();
 
             app.Run();
