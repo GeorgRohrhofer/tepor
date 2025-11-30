@@ -19,8 +19,30 @@ using namespace std;
 bool isPortAvailable(quint16 port);
 
 int main(int argc, char *argv[]) {
+  // CLI setup
+  CLI::App cliApp{"NodeBackend"};
+  
+  string dbPath = "/flyway/sqlite.db"; 
+  cliApp.add_option("-d, --database", dbPath, "Path to the sqlite database");
+
+  CLI11_PARSE(cliApp, argc, argv);
+
   QCoreApplication app(argc, argv);
   QEventLoop loop;
+  DatabaseManager *db = new DatabaseManager(QString(dbPath.c_str()));
+
+  try {
+    db->executeCommand("CREATE TABLE World (id INTEGER, name TEXT, hash TEXT, config TEXT)");
+  }
+  catch (const std::runtime_error &e) {
+    // Database setup has already been ran once
+  }
+
+  // db->executeCommand("INSERT INTO World (name, hash) VALUES ('Worllld', '1234567890')");
+  db->addWorld(2, "WORLD", "42", "empty");
+  auto result = db->executeQuery("SELECT * FROM World");
+
+  cout << result.size() << endl;
 
   ManagementNotifier *mngr = new ManagementNotifier(nullptr);
 

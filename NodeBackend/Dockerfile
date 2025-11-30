@@ -3,7 +3,7 @@ FROM gcc:15
 WORKDIR /app
 
 RUN apt-get update -qq && \
-    apt-get install -y make git && \
+    apt-get install -y make git qt6-base-dev && \
     rm -rf /var/lib/apt/lists/*
 
 RUN wget https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz
