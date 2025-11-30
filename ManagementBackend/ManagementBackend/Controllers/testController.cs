@@ -1,4 +1,5 @@
-﻿using ManagementBackend.resources;
+﻿using ManagementBackend.DataModels;
+using ManagementBackend.resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
@@ -20,7 +21,19 @@ namespace ManagementBackend.Controllers
         [HttpGet("TestEndpoint")]
         public string TestEndpoint()
         {
-            return "Endpoint works!";
+            var db = new MyDbContext();
+
+            var kek = new DataModels.Node() {
+                Id = Guid.NewGuid(),
+                Ram = 3.1,
+                Cpu = 124.052
+            };
+
+            db.Add(kek);
+            db.SaveChanges();
+            var bruh = db.Nodes.FirstOrDefault();
+
+            return "Endpoint works!\n" + bruh.Id;
         }
 
         [HttpPost("SendDiscordDm")]
@@ -46,7 +59,7 @@ namespace ManagementBackend.Controllers
         [HttpGet("WhoAmI")]
         public string WhoAmI()
         {
-            return User.FindFirst("preferred_username")?.Value ?? "No username found.";
+            return User.FindFirst("username")?.Value ?? "No username found.";
         }
     }
 }
