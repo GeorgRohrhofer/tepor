@@ -5,14 +5,17 @@
 #include <QAbstractSocket>
 #include <QObject>
 #include <QString>
+#include <QUuid>
 
 class ManagementNotifier : public QObject {
   Q_OBJECT
 
 public:
-  explicit ManagementNotifier(QObject *parent = nullptr);
+  explicit ManagementNotifier(QObject *parent = nullptr,
+                              QString host = "localhost", quint16 port = 8000);
   ~ManagementNotifier();
-  void sendWorldSaved(std::string worldName);
+  void sendWorldSaved(std::string worldName, std::string hash);
+  void sendRegister(QUuid uuid);
 
 signals:
   void connected();

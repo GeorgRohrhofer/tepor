@@ -40,12 +40,6 @@ int main(int argc, char *argv[]) {
     // Database setup has already been ran once
   }
 
-  // db->executeCommand("INSERT INTO World (name, hash) VALUES ('Worllld', '1234567890')");
-  db->addWorld(2, "WORLD", "42", "empty");
-  auto result = db->executeQuery("SELECT * FROM World");
-
-  cout << result.size() << endl;
-
   ManagementNotifier *mngr = new ManagementNotifier(nullptr);
 
   QMap<string, MinecraftInstance *> instances;
@@ -120,7 +114,8 @@ int main(int argc, char *argv[]) {
 
   QObject::connect(mngr, &ManagementNotifier::registered, [&]() {});
 
-  loop.exec();
+  mngr->sendRegister(QUuid::createUuid());
+  loop.exec(); 
 
   delete mngr;
 
