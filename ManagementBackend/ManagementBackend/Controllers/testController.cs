@@ -33,7 +33,7 @@ namespace ManagementBackend.Controllers
             return Ok("Message Sent");
         }
 
-        [HttpGet("SendDiscordMessage")]
+        [HttpPost("SendDiscordMessage")]
         public async Task<ObjectResult> SendDiscordMessage(
             [FromHeader(Name = "message")] string message,
             [FromHeader(Name = "ids")] string[] ids)

@@ -12,6 +12,12 @@ namespace ManagementBackend.Controllers
     [Authorize]
     public class UiApiController : ControllerBase
     {
+        [HttpGet("BackEndAlive")]
+        public ObjectResult BackEndAlive()
+        {
+            return Ok("Backend is alive");
+        }
+
         [HttpGet("GetUiData")]
         public string TestEndpoint()
         {
