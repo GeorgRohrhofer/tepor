@@ -5,8 +5,11 @@
 
 using json = nlohmann::json;
 
-ManagementNotifier::ManagementNotifier(QObject *parent, QString host, quint16 port) : QObject(parent) {
+ManagementNotifier::ManagementNotifier(QObject *parent, QString host,
+                                       quint16 port, DatabaseManager *db)
+    : QObject(parent) {
   nm = new NetworkManager(this);
+  this->db = db;
 
   connect(nm, &NetworkManager::connected, this,
           &ManagementNotifier::onConnected);

@@ -1,3 +1,4 @@
+#include <CLI/CLI.hpp>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QEventLoop>
@@ -10,10 +11,9 @@
 #include <qmap.h>
 #include <qobject.h>
 #include <string>
-#include <CLI/CLI.hpp>
 
-#include "ManagementNotifier.h"
 #include "DatabaseManager.h"
+#include "ManagementNotifier.h"
 #include "MinecraftInstance.h"
 
 using namespace std;
@@ -21,26 +21,40 @@ using namespace std;
 bool isPortAvailable(quint16 port);
 
 int main(int argc, char *argv[]) {
+  //----------------------------------------------------------------------------
   // CLI setup
+  //----------------------------------------------------------------------------
   CLI::App cliApp{"NodeBackend"};
-  
-  string dbPath = "/flyway/sqlite.db"; 
+
+  QString dbPath = "/flyway/sqlite.db";
   cliApp.add_option("-d, --database", dbPath, "Path to the sqlite database");
+
+  QString host = "localhost";
+  cliApp.add_option("-h, --host", host, "Host to connect to");
+
+  quint16 port = 8000;
+  cliApp.add_option("-p, --port", port, "Port to connect to");
 
   CLI11_PARSE(cliApp, argc, argv);
 
+  //----------------------------------------------------------------------------
+  
   QCoreApplication app(argc, argv);
   QEventLoop loop;
-  DatabaseManager *db = new DatabaseManager(QString(dbPath.c_str()));
+  DatabaseManager *db = new DatabaseManager(dbPath);
 
   try {
-    db->executeCommand("CREATE TABLE World (id INTEGER, name TEXT, hash TEXT, config TEXT)");
-  }
-  catch (const std::runtime_error &e) {
+    db->executeCommand(
+        "CREATE TABLE World (id INTEGER, name TEXT, hash TEXT, config TEXT)");
+    db->executeCommand("CREATE TABLE Node (id INTEGER)");
+    db->executeCommand("INSERT INTO Node (id) VALUES (" +
+                       QUuid::createUuid().toString() + ")");
+  } catch (const std::runtime_error &e) {
     // Database setup has already been ran once
   }
 
-  ManagementNotifier *mngr = new ManagementNotifier(nullptr);
+  ManagementNotifier *mngr =
+      new ManagementNotifier(nullptr, host, port, db);
 
   QMap<string, MinecraftInstance *> instances;
 
@@ -114,8 +128,9 @@ int main(int argc, char *argv[]) {
 
   QObject::connect(mngr, &ManagementNotifier::registered, [&]() {});
 
-  mngr->sendRegister(QUuid::createUuid());
-  loop.exec(); 
+  mngr->sendRegister(
+      QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString()));
+  loop.exec();
 
   delete mngr;
 
