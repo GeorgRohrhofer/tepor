@@ -1,4 +1,5 @@
 ﻿using SharedLibraries;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -12,6 +13,7 @@ namespace ServerMonitoringService
 
         List<Thread> threadList = new();
         private readonly JsonSerializerOptions _jsonOptions;
+        private ConcurrentDictionary<string, MonitoringData> _clients = new();
         bool _isRunning = true;
 
 
@@ -28,12 +30,12 @@ namespace ServerMonitoringService
 
         public void Start()
         {
-            Thread listenerThread = new(Listener);
+            Thread listenerThread = new(_Listener);
             listenerThread.Start();
             threadList.Add(listenerThread);
         }
 
-        public void Listener()
+        private void _Listener()
         {
             TcpListener tcpListener = new TcpListener(IPAddress.Any, _port);
             tcpListener.Start();
@@ -46,7 +48,7 @@ namespace ServerMonitoringService
                     Console.WriteLine("Waiting for client connections...");
                     TcpClient client = tcpListener.AcceptTcpClient();
 
-                    Thread thread = new(ClientHandler);
+                    Thread thread = new(_ClientHandler);
                     thread.Start(client);
                     threadList.Add(thread);
                     Console.WriteLine("Client connected: " + client.Client.RemoteEndPoint?.ToString());
@@ -59,7 +61,7 @@ namespace ServerMonitoringService
             tcpListener.Stop();
         }
 
-        public void ClientHandler(object? clientObject)
+        private void _ClientHandler(object? clientObject)
         {
             if (clientObject != null && clientObject is TcpClient client)
             {
@@ -73,10 +75,11 @@ namespace ServerMonitoringService
                     }
 
                     byte[] bytesReceived = new byte[8192];
-                    stream.Read(bytesReceived, 0, bytesReceived.Length);
-                    if (bytesReceived.Length == 0)
+                    int bytesRead = stream.Read(bytesReceived, 0, bytesReceived.Length);
+                    if (bytesRead == 0)
                         break;
-                    string jsonString = Encoding.UTF8.GetString(bytesReceived).TrimEnd('\0');
+
+                    string jsonString = Encoding.UTF8.GetString(bytesReceived, 0, bytesRead);
 
                     if (bytesReceived[0] == 1)
                     {
@@ -90,11 +93,7 @@ namespace ServerMonitoringService
                                 continue;
                             }
 
-                            if (dataMessage != null)
-                            {
-                                HandleMonitoringMessage(dataMessage, client.Client.RemoteEndPoint?.ToString() ?? "Unknown");
-                            }
-
+                            _HandleMonitoringMessage(dataMessage, client.Client.RemoteEndPoint?.ToString() ?? "Unknown");
                         }
                         catch (JsonException ex)
                         {
@@ -109,8 +108,9 @@ namespace ServerMonitoringService
             }
         }
 
-        private void HandleMonitoringMessage(MonitoringMessage data, string clientEndpoint)
+        private void _HandleMonitoringMessage(MonitoringMessage data, string clientEndpoint)
         {
+            // Display received data, left in for now for debugging
             Console.WriteLine($"\n=== System-Daten von {clientEndpoint} ===");
             Console.WriteLine($"NodeID:  {data.NodeID}");
             Console.WriteLine($"CPU:     {data.CpuUsage}");
@@ -118,12 +118,50 @@ namespace ServerMonitoringService
             Console.WriteLine($"Disk:    {data.DiskUsage}");
             Console.WriteLine($"Network: {data.NetworkUsage[0]}, {data.NetworkUsage[1]} ");
             Console.WriteLine($"Time:    {DateTime.Now:HH:mm:ss}");
+
+            _clients.AddOrUpdate(
+                data.NodeID,
+                key =>
+                new MonitoringData
+                {
+                    CpuUsage = data.CpuUsage,
+                    MemoryUsage = data.MemoryUsage,
+                    DiskUsage = data.DiskUsage,
+                    NetworkUsage = data.NetworkUsage,
+                    LastUpdated = DateTime.Now,
+                    StillActive = true
+                },
+                (key, existing) => new MonitoringData
+                {
+                    CpuUsage = data.CpuUsage,
+                    MemoryUsage = data.MemoryUsage,
+                    DiskUsage = data.DiskUsage,
+                    NetworkUsage = data.NetworkUsage,
+                    LastUpdated = DateTime.Now,
+                    StillActive = true
+                }
+            );
         }
 
         public void Stop()
         {
+            _WaitForShutdown();
             _isRunning = false;
             Console.WriteLine("Server is shutting down...");
+        }
+
+        private void _WaitForShutdown()
+        {
+            foreach (var thread in threadList)
+            {
+                thread.Join();
+            }
+        }
+
+        public IReadOnlyDictionary<string, MonitoringData> GetClientsSnapshot()
+        {
+            var snapshot = _clients.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            return new System.Collections.ObjectModel.ReadOnlyDictionary<string, MonitoringData>(snapshot);
         }
     }
 }

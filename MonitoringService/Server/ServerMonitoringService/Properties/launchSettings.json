@@ -1,8 +1,7 @@
 {
   "profiles": {
     "ServerMonitoringService": {
-      "commandName": "Project",
-      "commandLineArgs": "--port 6942"
+      "commandName": "Project"
     }
   }
 }
