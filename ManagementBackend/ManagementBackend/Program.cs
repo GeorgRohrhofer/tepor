@@ -1,3 +1,4 @@
+using ManagementBackend.DataModels;
 using ManagementBackend.resources;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -47,6 +48,10 @@ namespace ManagementBackend
                 throw new Exception("DiscordBotIp section is missing in configuration.");
             var discordMessageSender = new DiscordMessageSender(discordBotIp);
             builder.Services.AddSingleton(discordMessageSender);
+
+            // Add DbContext
+            var dbContext = new MyDbContext();
+            builder.Services.AddSingleton(dbContext);
 
             var app = builder.Build();
 

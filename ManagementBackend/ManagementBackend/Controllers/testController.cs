@@ -12,17 +12,17 @@ namespace ManagementBackend.Controllers
     public class TestController : ControllerBase
     {
         private readonly DiscordMessageSender _discordSender;
+        private MyDbContext db;
 
-        public TestController(DiscordMessageSender discordSender)
+        public TestController(DiscordMessageSender discordSender, MyDbContext db)
         {
             _discordSender = discordSender;
+            this.db = db;
         }
 
         [HttpGet("TestEndpoint")]
         public string TestEndpoint()
         {
-            var db = new MyDbContext();
-
             var kek = new DataModels.Node() {
                 Id = Guid.NewGuid(),
                 Ram = 3.1,
