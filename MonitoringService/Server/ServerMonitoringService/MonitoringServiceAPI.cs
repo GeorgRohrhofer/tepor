@@ -14,7 +14,7 @@ namespace ServerMonitoringService
 {
     public class MonitoringServiceAPI
     {
-        private int _timeoutMilliseconds = 16000;
+        private int _timeoutMilliseconds = 12000;
         private MonitoringServer _server;
         private HttpListener _listener;
         private bool _isRunning = true;
@@ -55,15 +55,8 @@ namespace ServerMonitoringService
 
                         byte[] message = _CreateMessage(_server.GetClientsSnapshot(), DateTime.Now);
 
-                        int attempts = 0;
-                        while (attempts < 2)
-                        {
-                            if (_SendMessage(message, response))
-                            {
-                                return;
-                            }
-                            attempts++;
-                        }
+                        _SendMessage(message, response);
+                        
                         throw new IOException("Failed to send message after multiple attempts.");
                     }
                     else
@@ -99,12 +92,8 @@ namespace ServerMonitoringService
             }
 
             byte[] messageBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(clients));
-            byte versionNumber = 1;
-            byte[] senderMessageBytes = new byte[messageBytes.Length + 1];
-            senderMessageBytes[0] = versionNumber;
-            Array.Copy(messageBytes, 0, senderMessageBytes, 1, messageBytes.Length);
-
-            return senderMessageBytes;
+            
+            return messageBytes;
         }
 
         private bool _SendMessage(byte[] message, HttpListenerResponse response)
