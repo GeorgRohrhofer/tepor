@@ -12,6 +12,7 @@ namespace ClientMonitoringService
         private DataTransmitter _dataTransmitter;
         private bool _isRunning;
         private string _nodeID;
+        private string? _networkInterface = null;
 
         public MonitoringService(string serverHost, int serverPort, string nodeID)
         {
@@ -19,6 +20,15 @@ namespace ClientMonitoringService
             _dataTransmitter = new DataTransmitter(serverHost, serverPort);
             _isRunning = false;
             _nodeID = nodeID;
+        }
+
+        public MonitoringService(string serverHost, int serverPort, string nodeID, string networkInterface)
+        {
+            _systemResourceMonitor = new SystemResourceMonitor();
+            _dataTransmitter = new DataTransmitter(serverHost, serverPort);
+            _isRunning = false;
+            _nodeID = nodeID;
+            _networkInterface = networkInterface;
         }
 
         public void Start()
@@ -36,8 +46,16 @@ namespace ClientMonitoringService
         {
             while (_isRunning)
             {
-                MonitoringMessage message = _systemResourceMonitor.Monitor();
-                
+                MonitoringMessage message;
+                if (_networkInterface == null)
+                {
+                    message = _systemResourceMonitor.Monitor();
+                }
+                else
+                {
+                    message = _systemResourceMonitor.Monitor(_networkInterface);
+                }
+
                 message.NodeID = _nodeID;
 
                 bool success = _dataTransmitter.SendSystemData(message);
