@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Libs\dotnet\Monitoring\Monitoring\Monitoring.csproj" />
     <ProjectReference Include="..\..\SharedLibraries\SharedLibraries\SharedObjects.csproj" />
   </ItemGroup>
 

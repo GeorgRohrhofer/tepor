@@ -2,7 +2,7 @@
   "profiles": {
     "ClientMonitoringService": {
       "commandName": "Project",
-      "commandLineArgs": "--ipaddress \"127.0.0.1\" --port 6942"
+      "commandLineArgs": "--ipaddress \"127.0.0.1\" --port 6942 --nodeid \"123\""
     }
   }
 }

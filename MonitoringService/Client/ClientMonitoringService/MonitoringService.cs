@@ -37,6 +37,7 @@ namespace ClientMonitoringService
             while (_isRunning)
             {
                 MonitoringMessage message = _systemResourceMonitor.Monitor();
+                
                 message.NodeID = _nodeID;
 
                 bool success = _dataTransmitter.SendSystemData(message);
