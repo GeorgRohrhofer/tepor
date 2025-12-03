@@ -23,11 +23,11 @@ namespace ServerMonitoringService
         public MonitoringServiceAPI(MonitoringServer server)
         {
             _server = server;
+            _listener = new HttpListener();
         }
 
         private void _StartNetworkListener(int port)
         {
-            _listener = new HttpListener();
             _listener.Prefixes.Add($"http://127.0.0.1:{port}/");
             _listener.Start();
             Console.WriteLine($"HTTP Listener started on port {port}");
@@ -51,7 +51,7 @@ namespace ServerMonitoringService
 
                     Console.WriteLine($"Request received: {request.HttpMethod} {request.RawUrl}");
 
-                    if (request.Url.AbsolutePath == "/monitor/all")
+                    if (request.Url?.AbsolutePath == "/monitor/all")
                     {
 
                         byte[] message = _CreateMessage(_server.GetClientsSnapshot(), DateTime.Now);
