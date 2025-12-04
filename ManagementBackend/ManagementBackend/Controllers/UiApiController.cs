@@ -1,4 +1,5 @@
 ﻿using ManagementBackend.resources;
+using ManagementBackend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -12,6 +13,23 @@ namespace ManagementBackend.Controllers
     [Authorize]
     public class UiApiController : ControllerBase
     {
+        private readonly NMcomService _nmComService;
+
+        public UiApiController(NMcomService nmComService)
+        {
+            _nmComService = nmComService;
+        }
+
+        //todo move into body
+        [HttpPut("ServerCreate")]
+        public ObjectResult ServerCreate(
+            [FromHeader(Name = "config")] string config)
+        {
+            _nmComService.SendCreateServer(config);
+
+            return Ok("Created Server Sent");
+        }
+
         [HttpGet("BackEndAlive")]
         public ObjectResult BackEndAlive()
         {

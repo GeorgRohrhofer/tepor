@@ -1,5 +1,6 @@
 using ManagementBackend.DataModels;
 using ManagementBackend.resources;
+using ManagementBackend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -52,6 +53,10 @@ namespace ManagementBackend
             // Add DbContext
             var dbContext = new MyDbContext();
             builder.Services.AddSingleton(dbContext);
+
+            // Typ Socket
+            builder.Services.AddSingleton<NMcomService>();
+            builder.Services.AddHostedService(provider => provider.GetRequiredService<NMcomService>());
 
             var app = builder.Build();
 
