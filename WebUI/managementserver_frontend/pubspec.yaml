@@ -1,19 +1,44 @@
 name: managementserver_frontend
-description: "A new Flutter project."
+description: "WebUI for Management Server"
 publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.8.1
+  sdk: "^3.10.1"
 
 dependencies:
   flutter:
     sdk: flutter
 
+  keycloak_flutter: ^0.0.20
+  js: ^0.6.6
+
+  # State management
+  provider: ^6.1.2
+  get: ^4.6.5
+
+  flutter_web_auth_2: ^4.1.0
+  http: ^1.1.0
+  crypto: ^3.0.7
+
+  # JSON serialization
+  json_annotation: ^4.9.0
+
+  # File import
+  file_picker: ^6.0.0
+
+  flutter_appauth: ^5.0.0
+  flutter_secure_storage: ^9.0.0
+
+  # Storage (Web-kompatibel)
+  get_storage: ^2.1.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  build_runner: ^2.4.6
+  json_serializable: ^6.11.3
 
 flutter:
   uses-material-design: true
