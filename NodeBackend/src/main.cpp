@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   cliApp.add_option("-d, --database", dbPath, "Path to the sqlite database");
 
   QString host = "localhost";
-  cliApp.add_option("-h, --host", host, "Host to connect to");
+  cliApp.add_option("-t, --host", host, "Host to connect to");
 
   quint16 port = 8000;
   cliApp.add_option("-p, --port", port, "Port to connect to");
@@ -129,7 +129,8 @@ int main(int argc, char *argv[]) {
   QObject::connect(mngr, &ManagementNotifier::registered, [&]() {});
 
   mngr->sendRegister(
-      QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString()));
+      // QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString())
+      QUuid(QUuid::createUuid().toString(QUuid::WithoutBraces)));
   loop.exec();
 
   delete mngr;
