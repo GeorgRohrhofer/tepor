@@ -29,6 +29,8 @@ void NetworkManager::connectToServer(const QString &host, quint16 port) {
 
   qDebug() << "Connecting to " << host << ":" << port;
   socket->connectToHost(host, port);
+
+  socket->waitForConnected();
 }
 
 void NetworkManager::sendMessage(const QByteArray data) {
