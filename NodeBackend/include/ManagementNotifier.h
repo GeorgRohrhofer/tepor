@@ -1,18 +1,24 @@
 #ifndef MANAGEMENTNOTIFIER_H
 #define MANAGEMENTNOTIFIER_H
 
+#include "DatabaseManager.h"
 #include "NetworkManager.h"
+
 #include <QAbstractSocket>
 #include <QObject>
 #include <QString>
+#include <QUuid>
 
 class ManagementNotifier : public QObject {
   Q_OBJECT
 
 public:
-  explicit ManagementNotifier(QObject *parent = nullptr);
+  explicit ManagementNotifier(QObject *parent = nullptr,
+                              QString host = "localhost", quint16 port = 8000,
+                              DatabaseManager *db = nullptr);
   ~ManagementNotifier();
-  void sendWorldSaved(std::string worldName);
+  void sendWorldSaved(std::string worldName, std::string hash);
+  void sendRegister(QUuid uuid);
 
 signals:
   void connected();
@@ -39,6 +45,7 @@ private slots:
 private:
   NetworkManager *nm;
   std::string activeId;
+  DatabaseManager *db;
 };
 
 #endif // MANAGEMENTNOTIFIER_H

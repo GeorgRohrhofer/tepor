@@ -5,8 +5,11 @@
 
 using json = nlohmann::json;
 
-ManagementNotifier::ManagementNotifier(QObject *parent) : QObject(parent) {
+ManagementNotifier::ManagementNotifier(QObject *parent, QString host,
+                                       quint16 port, DatabaseManager *db)
+    : QObject(parent) {
   nm = new NetworkManager(this);
+  this->db = db;
 
   connect(nm, &NetworkManager::connected, this,
           &ManagementNotifier::onConnected);
@@ -16,6 +19,8 @@ ManagementNotifier::ManagementNotifier(QObject *parent) : QObject(parent) {
           &ManagementNotifier::onMessageReceived);
   connect(nm, &NetworkManager::errorOccurred, this,
           &ManagementNotifier::onErrorOccurred);
+
+  nm->connectToServer(host, port);
 }
 
 ManagementNotifier::~ManagementNotifier() { delete nm; }
@@ -32,7 +37,7 @@ void ManagementNotifier::onDisconnected() {
 
 void ManagementNotifier::onMessageReceived(const QByteArray &data) {
   qDebug() << "Received message: " << QString(data);
-  
+
   try {
     json message = json::parse(data);
     if (message.contains("type")) {
@@ -76,4 +81,20 @@ void ManagementNotifier::onMessageReceived(const QByteArray &data) {
 
 void ManagementNotifier::onErrorOccurred(const QString &error) {
   emit errorOccurred(error);
+}
+
+void ManagementNotifier::sendWorldSaved(std::string worldName,
+                                        std::string hash) {
+  json message = {{"type", "WorldSaved"},
+                  {"data", {{"world_id", worldName}}},
+                  {"hash", hash}};
+
+  nm->sendMessage(QByteArray(message.dump()));
+}
+
+void ManagementNotifier::sendRegister(QUuid uuid) {
+  json message = {{"type", "HELOReq"},
+                  {"data", {{"previous_id", uuid.toString().toStdString()}}}};
+
+  nm->sendMessage(QByteArray(message.dump()));
 }
