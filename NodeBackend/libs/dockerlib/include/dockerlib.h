@@ -20,14 +20,16 @@ public:
   Docker(Docker&&) noexcept;
   Docker& operator=(Docker&&) noexcept;
 
-  std::string startContainer(
+  std::string createContainer(
     const std::string& image, 
     const std::string& containerName = "",
     const std::vector<std::string>& env = {},
-    const std::map<std::string, std::string>& portBindings = {}
+    const std::map<std::string, std::string>& portBindings = {},
+    const std::map<std::string, std::string>& volumeBindings = {}
   );
 
-  void pullImage(std::string& image);
+  void startContainer(const std::string& containerIdOrName);
+  void pullImage(const std::string& image);
   void stopContainer(const std::string& containerIdOrName, int timeout = 10);
   void restartContainer(const std::string& containerIdOrName, int timeout = 10);
   void removeContainer(const std::string& containerIdOrName, bool force = false);

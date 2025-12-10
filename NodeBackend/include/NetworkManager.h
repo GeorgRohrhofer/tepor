@@ -9,7 +9,7 @@ public:
     explicit NetworkManager(QObject *parent = nullptr);
     ~NetworkManager();
     void connectToServer(const QString &host, quint16 port);
-    void sendMessage(const QByteArray &data);
+    void sendMessage(const QByteArray data);
     void waitForConnection();
     void disconnect();
     
