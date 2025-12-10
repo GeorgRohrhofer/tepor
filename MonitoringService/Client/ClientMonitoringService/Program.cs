@@ -31,17 +31,37 @@ namespace ClientMonitoringService
                 Description = "The ID of the Node the data is of.",
                 Required = true,
             };
+            Option<string?> networkinterfaceOption = new("--networkinterface")
+            {
+                Description = "The ID of the Node the data is of.",
+                Required = false,
+            };
 
             RootCommand rootCommand = new("Start Client Monitoring Service");
             rootCommand.Options.Add(ipaddressOption);
             rootCommand.Options.Add(portOption);
             rootCommand.Options.Add(nodeidOption);
+            rootCommand.Options.Add(networkinterfaceOption);
 
             ParseResult parseResult = rootCommand.Parse(args);
-            if (parseResult.Errors.Count == 0 && parseResult.GetValue(ipaddressOption) is string ip && parseResult.GetValue(portOption) is int i && parseResult.GetValue(nodeidOption) is string id)
+
+            string? ip = parseResult.GetValue(ipaddressOption);
+            int i = parseResult.GetValue(portOption);
+            string? id = parseResult.GetValue(nodeidOption);
+            string? networkif = parseResult.GetValue(networkinterfaceOption);
+
+            if (parseResult.Errors.Count == 0)
             {
-                MonitoringService monitoringService = new MonitoringService(ip, i, id);
-                monitoringService.Start();
+                if (networkif == null)
+                {
+                    MonitoringService monitoringService = new MonitoringService(ip!, i, id!);
+                    monitoringService.Start();
+                }
+                else
+                {
+                    MonitoringService monitoringService = new MonitoringService(ip!, i, id!, networkif);
+                    monitoringService.Start();
+                }
                 return;
             }
             foreach (ParseError parseError in parseResult.Errors)
