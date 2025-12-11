@@ -6,12 +6,12 @@ class UserProvider extends ChangeNotifier {
 
   User? get currentUser => _currentUser;
 
-  String get username => _currentUser?.username ?? 'Guest';
+  String get username => _currentUser?.username ?? 'NoNAME';
   String get role => _currentUser?.role ?? 'User';
 
   void setUser(User user) {
     _currentUser = user;
-    notifyListeners(); // notifies all listening widgets
+    notifyListeners();
   }
 
   void clearUser() {

@@ -33,16 +33,14 @@ class _CreateWorldOverlayState extends State<CreateWorldOverlay> {
   Widget build(BuildContext context) {
     return Dialog(
       insetPadding: const EdgeInsets.all(24),
-      backgroundColor: Colors.white,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Top bar: Logo + title
               Row(
                 children: [
                   Container(

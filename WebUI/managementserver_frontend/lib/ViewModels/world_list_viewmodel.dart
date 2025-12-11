@@ -1,24 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/world.dart';
+import '../provider/user_provider.dart';
 
-enum WorldOverlay { none, create, edit, delete, import }
+enum WorldOverlay { none, create, edit, delete }
 
 class WorldListViewModel extends ChangeNotifier {
-  // -------------------------------
-  // User information (set when logging in)
-  // -------------------------------
-  String username = "Guest";
-  String role = "User";
+  final UserProvider userProvider; // ← direkt
 
-  // -------------------------------
-  // Worlds list
-  // -------------------------------
+  WorldListViewModel({required this.userProvider});
+
   final List<World> _worlds = [];
   List<World> get worlds => _worlds;
 
-  // -------------------------------
-  // Overlay state
-  // -------------------------------
   WorldOverlay activeOverlay = WorldOverlay.none;
   World? selectedWorld;
 
@@ -41,14 +35,18 @@ class WorldListViewModel extends ChangeNotifier {
   // Create
   void createWorld({
     required String worldname,
-    required String creatorname,
     required String worldMode,
+    required String worldSeed,
+    required BuildContext context,
   }) {
+    final username = context.read<UserProvider>().username;
+
     final newWorld = World(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       worldname: worldname,
-      creatorname: creatorname,
+      creatorname: username,
       worldMode: worldMode,
+      worldSeed: worldSeed,
     );
 
     _worlds.add(newWorld);
@@ -81,18 +79,4 @@ class WorldListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Import (example: adds a new world automatically)
-  Future<void> importWorld() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final imported = World(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      worldname: "Imported World",
-      creatorname: "Importer",
-      worldMode: "Survival",
-    );
-
-    _worlds.add(imported);
-    notifyListeners();
-  }
 }

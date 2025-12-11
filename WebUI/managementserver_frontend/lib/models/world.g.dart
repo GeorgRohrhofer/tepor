@@ -11,6 +11,7 @@ World _$WorldFromJson(Map<String, dynamic> json) => World(
   worldname: json['worldname'] as String,
   creatorname: json['creatorname'] as String,
   worldMode: json['worldMode'] as String,
+  worldSeed: json['worldSeed'] as String,
 );
 
 Map<String, dynamic> _$WorldToJson(World instance) => <String, dynamic>{
@@ -18,4 +19,5 @@ Map<String, dynamic> _$WorldToJson(World instance) => <String, dynamic>{
   'worldname': instance.worldname,
   'creatorname': instance.creatorname,
   'worldMode': instance.worldMode,
+  'worldSeed': instance.worldSeed,
 };

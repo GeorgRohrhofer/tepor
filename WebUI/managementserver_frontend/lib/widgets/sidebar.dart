@@ -16,42 +16,52 @@ class Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return Container(
       width: 250,
-      color: const Color.fromARGB(255, 140, 226, 212),
+      color: colors.surfaceContainer,
       child: Column(
         children: [
           const SizedBox(height: 50),
 
-          // Hauptnavigation
+          // Main navigation
           ListTile(
             selected: selectedIndex == 0,
-            leading: const Icon(Icons.public),
-            title: const Text('Worlds'),
+            leading: Icon(Icons.public, color: colors.onSurface),
+            title: Text('Worlds', style: TextStyle(color: colors.onSurface)),
             onTap: () => onSelectIndex(0),
           ),
           ListTile(
             selected: selectedIndex == 1,
-            leading: const Icon(Icons.storage),
-            title: const Text('Servernodes'),
+            leading: Icon(Icons.storage, color: colors.onSurface),
+            title: Text('Servernodes', style: TextStyle(color: colors.onSurface)),
             onTap: () => onSelectIndex(1),
           ),
 
-          const Spacer(), // Schiebt Buttons nach unten
+          const Spacer(),
 
           // Settings Button
           ListTile(
-            leading: const Icon(Icons.settings, color: Color.fromARGB(255, 0, 0, 0)),
-            title: const Text('Settings'),
+            leading: Icon(Icons.settings, color: colors.primary),
+            title: Text(
+              'Settings',
+              style: TextStyle(color: colors.primary),
+            ),
             onTap: onSettings,
           ),
+
           // Logout Button
           ListTile(
-            leading: const Icon(Icons.logout, color: Color.fromARGB(255, 8, 6, 5)),
-            title: const Text('Logout'),
+            leading: Icon(Icons.logout, color: colors.error),
+            title: Text(
+              'Logout',
+              style: TextStyle(color: colors.error),
+            ),
             onTap: onLogout,
           ),
-          const SizedBox(height: 20), // Optional: Abstand zum unteren Rand
+
+          const SizedBox(height: 20),
         ],
       ),
     );

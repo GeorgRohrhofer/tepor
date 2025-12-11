@@ -8,12 +8,14 @@ class World {
   String worldname;
   String creatorname;
   String worldMode;
+  final String worldSeed;
 
   World({
     required this.id,
     required this.worldname,
     required this.creatorname,
     required this.worldMode,
+    required this.worldSeed,
   });
 
   factory World.fromJson(Map<String, dynamic> json) => _$WorldFromJson(json);

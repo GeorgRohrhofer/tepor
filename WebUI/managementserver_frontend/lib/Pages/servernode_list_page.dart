@@ -1,82 +1,110 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../provider/servernode_provider.dart';
 import '../provider/user_provider.dart';
 
-class ServerNodeListPage extends StatelessWidget {
+class ServerNodeListPage extends StatefulWidget {
   const ServerNodeListPage({super.key});
 
   @override
+  State<ServerNodeListPage> createState() => _ServerNodeListPageState();
+}
+
+class _ServerNodeListPageState extends State<ServerNodeListPage> {
+  bool _isInit = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInit) {
+      Provider.of<ServerNodeProvider>(context, listen: false).loadServerNodes();
+      _isInit = false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>(); // <-- WICHTIG!
+    final serverNodeProvider = context.watch<ServerNodeProvider>();
+    final userProvider = context.watch<UserProvider>();
+
+    final colors = Theme.of(context).colorScheme;
+
+    if (serverNodeProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: colors.surface,
         toolbarHeight: 70,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome ${user.username}!',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              "Welcome ${userProvider.username}!",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colors.onSurface, 
+              ),
             ),
             Text(
-              'Role: ${user.role}',
-              style: const TextStyle(fontSize: 14, color: Colors.black54),
+              "Role: ${userProvider.role}",
+              style: TextStyle(
+                fontSize: 14,
+                color: colors.onSurfaceVariant,
+              ),
             ),
           ],
         ),
       ),
 
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-              ),
-              child: SingleChildScrollView(
-                child: DataTable(
-                  headingRowColor: WidgetStatePropertyAll(Colors.grey[300]),
-                  columns: const [
-                    DataColumn(label: Text("ServerNode-ID")),
-                    DataColumn(label: Text("CPU")),
-                    DataColumn(label: Text("RAM")),
-                    DataColumn(label: Text("Netzwerknutzung")),
-                    DataColumn(label: Text("Disk Usage")),
-                    DataColumn(label: Text(" ")),
-                  ],
-                  rows: List.generate(
-                    10,
-                    (_) => DataRow(
-                      cells: [
-                        const DataCell(Text("ID - 123345533243252")),
-                        const DataCell(Text("90 %")),
-                        const DataCell(Text("101%")),
-                        const DataCell(Text("U: 25 Mb/s D: 4Mb/s")),
-                        const DataCell(Text("R/W: 50 Kb/s\nS: 1Tb / 5Tb")),
-                        DataCell(
-                          ElevatedButton(
-                            onPressed: () {
-                              debugPrint("V button pressed!");
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              minimumSize: Size.zero,
-                            ),
-                            child: const Text("V"),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+      body: Padding(
+        padding: const EdgeInsets.only(top: 20, left: 50, right: 50),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child:Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: colors.outlineVariant),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ),
-        ],
+            child: DataTable(
+              headingRowColor: WidgetStatePropertyAll(
+                colors.surfaceContainerHigh,
+              ),
+              headingTextStyle: TextStyle(
+                color: colors.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+              columns: const [
+                DataColumn(label: Text("ServerNode-ID")),
+                DataColumn(label: Text("CPU")),
+                DataColumn(label: Text("RAM")),
+                DataColumn(label: Text("Netzwerknutzung")),
+                DataColumn(label: Text("Disk Usage")),
+                DataColumn(label: Text("Action")),
+              ],
+              rows: serverNodeProvider.servernodes.map((node) {
+                return DataRow(
+                  color: WidgetStatePropertyAll(colors.surface), // optional row color
+                  cells: [
+                    DataCell(Text(node.id)),
+                    DataCell(Text(node.cpu)),
+                    DataCell(Text(node.ram)),
+                    DataCell(Text(node.network)),
+                    DataCell(Text(node.disk)),
+                    DataCell(
+                      ElevatedButton(
+                        onPressed: () => debugPrint("V pressed for ${node.id}"),
+                        child: const Text("V"),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          )
+        ),
       ),
     );
   }

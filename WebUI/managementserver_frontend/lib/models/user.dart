@@ -1,6 +1,6 @@
 class User {
-  final String username;
-  final String role;
+  String username;
+  String role;
 
   User({required this.username, required this.role});
 }
