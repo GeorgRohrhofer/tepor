@@ -26,10 +26,10 @@ int main(int argc, char *argv[]) {
   //----------------------------------------------------------------------------
   CLI::App cliApp{"NodeBackend"};
 
-  QString dbPath = "/flyway/sqlite.db";
+  string dbPath = "/flyway/sqlite.db";
   cliApp.add_option("-d, --database", dbPath, "Path to the sqlite database");
 
-  QString host = "localhost";
+  string host = "localhost";
   cliApp.add_option("-t, --host", host, "Host to connect to");
 
   quint16 port = 8000;
@@ -38,23 +38,24 @@ int main(int argc, char *argv[]) {
   CLI11_PARSE(cliApp, argc, argv);
 
   //----------------------------------------------------------------------------
-  
+
   QCoreApplication app(argc, argv);
   QEventLoop loop;
-  DatabaseManager *db = new DatabaseManager(dbPath);
+  DatabaseManager *db = new DatabaseManager(QString::fromStdString(dbPath));
 
   try {
     db->executeCommand(
         "CREATE TABLE World (id INTEGER, name TEXT, hash TEXT, config TEXT)");
     db->executeCommand("CREATE TABLE Node (id INTEGER)");
-    db->executeCommand("INSERT INTO Node (id) VALUES (" +
-                       QUuid::createUuid().toString() + ")");
+    db->executeCommand("INSERT INTO Node (id) VALUES ('" +
+                       QUuid::createUuid().toString(QUuid::WithoutBraces) +
+                       "')");
   } catch (const std::runtime_error &e) {
     // Database setup has already been ran once
   }
 
   ManagementNotifier *mngr =
-      new ManagementNotifier(nullptr, host, port, db);
+      new ManagementNotifier(nullptr, QString::fromStdString(host), port, db);
 
   QMap<string, MinecraftInstance *> instances;
 
@@ -129,8 +130,7 @@ int main(int argc, char *argv[]) {
   QObject::connect(mngr, &ManagementNotifier::registered, [&]() {});
 
   mngr->sendRegister(
-      // QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString())
-      QUuid(QUuid::createUuid().toString(QUuid::WithoutBraces)));
+      QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString()));
   loop.exec();
 
   delete mngr;
