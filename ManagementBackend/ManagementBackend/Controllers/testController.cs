@@ -1,5 +1,5 @@
 ﻿using ManagementBackend.DataModels;
-using ManagementBackend.resources;
+using ManagementBackend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;

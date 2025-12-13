@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-namespace ManagementBackend.resources
+namespace ManagementBackend.Services
 {
     public class DiscordMessageSender
     {
@@ -12,9 +12,9 @@ namespace ManagementBackend.resources
         public DiscordMessageSender(string ipAdress, string discordBotDefaultUserId)
         {
             this.ipAdress = ipAdress;
-            this.httpClient = new HttpClient();
-            this.discordBotUserIds = new List<string>();
-            this.discordBotUserIds.Add(discordBotDefaultUserId);
+            httpClient = new HttpClient();
+            discordBotUserIds = new List<string>();
+            discordBotUserIds.Add(discordBotDefaultUserId);
         }
 
         public async Task SendMessageToChannel(string messageContent, string[] channelIds)

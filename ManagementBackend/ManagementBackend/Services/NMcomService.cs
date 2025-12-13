@@ -1,5 +1,4 @@
 ﻿using ManagementBackend.DataModels;
-using ManagementBackend.resources;
 using Microsoft.Extensions.Hosting;
 using System.Net;
 using System.Net.Sockets;
