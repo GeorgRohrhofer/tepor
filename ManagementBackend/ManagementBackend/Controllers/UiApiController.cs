@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
+using ManagementBackend.DataModels;
 
 namespace ManagementBackend.Controllers
 {
@@ -14,81 +15,119 @@ namespace ManagementBackend.Controllers
     public class UiApiController : ControllerBase
     {
         private readonly NMcomService _nmComService;
+        private MyDbContext db;
 
-        public UiApiController(NMcomService nmComService)
+        public UiApiController(NMcomService nmComService, MyDbContext db)
         {
             _nmComService = nmComService;
+            this.db = db;
         }
 
-        //todo move into body
-        [HttpPut("ServerCreate")]
-        public ObjectResult ServerCreate(
-            [FromHeader(Name = "config")] string config)
+        [HttpGet("GetUserName")]
+        public ObjectResult GetUserName()
         {
-            _nmComService.SendCreateServer(config);
-
-            return Ok("Created Server Sent");
+            return Ok(User.FindFirst("username")?.Value ?? "No username found.");
         }
 
-        [HttpGet("BackEndAlive")]
-        public ObjectResult BackEndAlive()
+        [HttpGet("GetRoles")]
+        public ObjectResult GetRoles()
         {
-            return Ok("Backend is alive");
-        }
+            var roles = string.Empty;
 
-        [HttpGet("GetUiData")]
-        public string TestEndpoint()
-        {
-            return "Here is your dummy Ui Data";
+            if (User.IsInRole("user"))
+                roles += "user\n";
+
+            if (User.IsInRole("admin"))
+                roles += "admin\n";
+
+            return Ok(roles);
         }
 
         [HttpGet("GetNodes")]
-        public string GetNodes()
+        public ObjectResult GetNodes()
         {
-            var nodes = new List<Node>
-            {
-                new Node { Name = "Node A", Id = Guid.NewGuid() },
-                new Node { Name = "Node B", Id = Guid.NewGuid() },
-                new Node { Name = "Node C", Id = Guid.NewGuid() }
-            };
-
+            var nodes = db.Nodes.ToList();
             string json = JsonSerializer.Serialize(nodes);
 
-            return json;
+            return Ok(json);
         }
 
-        [HttpGet("GetNodeDetails")]
-        public string GetNodeDetails()
+        [HttpGet("GetNode")]
+        public ObjectResult GetNodes([FromHeader(Name = "nodeId")] Guid nodeId)
         {
-            var nodeDetails = new NodeDetails
+            var node = db.Nodes.Where(n => n.Id == nodeId).FirstOrDefault();
+            string json = JsonSerializer.Serialize(node);
+
+            return Ok(json);
+        }
+
+        [HttpGet("GetWorldsByOwner")]
+        public ObjectResult GetWorldsByOwner([FromHeader(Name = "ownderId")] Guid ownerId)
+        {
+            var worlds = db.Worlds.Where(w => w.OwnerId == ownerId);
+            string json = JsonSerializer.Serialize(worlds);
+
+            return Ok(json);
+        }
+
+        [HttpGet("GetWorldsByNode")]
+        public ObjectResult GetWorldsByNode([FromHeader(Name = "nodeId")] Guid nodeId)
+        {
+            var worlds = db.Worlds.Where(w => db.WorldStores.Any(ws => ws.RunningNodeId == nodeId && ws.WorldId == w.Id)).ToList();
+            string json = JsonSerializer.Serialize(worlds);
+
+            return Ok(json);
+        }
+
+        [HttpGet("GetWorld")]
+        public ObjectResult GetWorld([FromHeader(Name = "worldId")] Guid worldId)
+        {
+            var world = db.Worlds.Where(w => w.Id == worldId).FirstOrDefault();
+            string json = JsonSerializer.Serialize(world);
+
+            return Ok(json);
+        }
+
+        [HttpPost("CreateWorld")]
+        public ObjectResult CreateWorld([FromBody] CreateWorldRequest request)
+        {
+            if (request == null)
+                return BadRequest("Invalid request body.");
+
+            var ownerId = User.FindFirst("sub")?.Value;
+            if (ownerId == null)
+                return BadRequest("User ID not found in token.");
+
+            var world = new World()
             {
-                Name = "Node A",
                 Id = Guid.NewGuid(),
-                State = "Active",
-                Description = "This is a sample node used for demonstration purposes.",
-                Settings = "Default Settings",
-                Ip = "123.456.789.111"
+                Name = request.WorldName,
+                Hash = "",
+                Config = request.WorldConfig,
+                OwnerId = Guid.Parse(ownerId),
             };
 
-            string json = JsonSerializer.Serialize(nodeDetails);
+            // Send to Node
+            // Save to DB
 
-            return json;
+            return Ok("World Created with ID: " + world.Id);
         }
-    }
 
-    public class Node
-    {
-        public string Name { get; set; }
-        public Guid Id { get; set; }
-    }
+        [HttpDelete("DeleteWorld")]
+        public ObjectResult DeleteWorld([FromHeader(Name = "worldId")] Guid worldId)
+        {
+            // Send to Node
 
-    public class NodeDetails
-    {
-        public string Name { get; set; }
-        public Guid Id { get; set; }
-        public string State { get; set; }
-        public string Description { get; set; }
-        public string Settings { get; set; }
-        public string Ip { get; set; }
+            db.Worlds.RemoveRange(db.Worlds.Where(w => w.Id == worldId));
+
+            return Ok("World Deleted with ID: " + worldId);
+        }
+
+        public class CreateWorldRequest
+        {
+            public required string WorldName { get; set; }
+
+            public required string WorldConfig { get; set; }
+        }
     }
 }
