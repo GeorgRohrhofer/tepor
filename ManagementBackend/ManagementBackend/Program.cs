@@ -12,7 +12,19 @@ namespace ManagementBackend
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Add CORS policy to allow all origins, headers, and methods.
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
+            // Add Keycloak Auth.
             var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
             if (jwtSettings == null)
                 throw new Exception("JwtSettings section is missing in configuration.");
@@ -68,6 +80,7 @@ namespace ManagementBackend
                 app.UseSwaggerUI();
             }
 
+            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
