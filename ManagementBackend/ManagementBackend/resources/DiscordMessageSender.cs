@@ -7,11 +7,14 @@ namespace ManagementBackend.resources
     {
         private string ipAdress;
         private HttpClient httpClient;
+        public List<string> discordBotUserIds;
 
-        public DiscordMessageSender(string ipAdress)
+        public DiscordMessageSender(string ipAdress, string discordBotDefaultUserId)
         {
             this.ipAdress = ipAdress;
             this.httpClient = new HttpClient();
+            this.discordBotUserIds = new List<string>();
+            this.discordBotUserIds.Add(discordBotDefaultUserId);
         }
 
         public async Task SendMessageToChannel(string messageContent, string[] channelIds)

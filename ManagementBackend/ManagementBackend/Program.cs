@@ -59,7 +59,10 @@ namespace ManagementBackend
             var discordBotIp = builder.Configuration.GetSection("DiscordBotIp").Get<string>();
             if (discordBotIp == null)
                 throw new Exception("DiscordBotIp section is missing in configuration.");
-            var discordMessageSender = new DiscordMessageSender(discordBotIp);
+            var discordBotDefaultUserId = builder.Configuration.GetSection("DiscordBotDefaultUserId").Get<string>();
+            if (discordBotDefaultUserId == null)
+                throw new Exception("DiscordBotDefaultUserId section is missing in configuration.");
+            var discordMessageSender = new DiscordMessageSender(discordBotIp, discordBotDefaultUserId);
             builder.Services.AddSingleton(discordMessageSender);
 
             // Add DbContext
