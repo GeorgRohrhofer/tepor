@@ -8,7 +8,7 @@ namespace ManagementBackend.Services
 {
     public class NMcomMessages
     {
-        private const byte ProtocolVersion = 0x01;
+        public const byte ProtocolVersion = 0x01;
         private const int HeaderSize = 5; // 1 Byte Version + 4 Bytes Länge
 
         public static byte[] CreateMessage<T>(NMPMessage<T> message)

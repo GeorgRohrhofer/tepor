@@ -137,7 +137,7 @@ namespace ManagementBackend.Services
 
             connectedSockets[heloReq.data.previous_id] = socket;
 
-            var helloRespData = new HELORespData {active_id = heloReq.data.previous_id};
+            var helloRespData = new HELORespData { active_id = heloReq.data.previous_id };
             var messageObject = new NMPMessage<HELORespData>("HELOResp", helloRespData);
             await SendMessage(messageObject, heloReq.data.previous_id);
         }
@@ -169,19 +169,125 @@ namespace ManagementBackend.Services
             socket.Close();
         }
 
-        private async Task SendMessage<T>(NMPMessage<T> messageObject, Guid nodeId)
+        private async Task<bool> SendMessage<T>(NMPMessage<T> messageObject, Guid nodeId)
         {
             var socket = connectedSockets.GetValueOrDefault(nodeId);
 
             if (socket == null || !socket.Connected)
             {
                 Console.WriteLine("Socket not connected. Cannot send message.");
-                return;
+                return false;
             }
 
             var message = NMcomMessages.CreateMessage<T>(messageObject);
 
-            var kek = await socket.SendAsync(message);
+            var bytesTransfered = await socket.SendAsync(message);
+
+            return bytesTransfered == message.Length;
+        }
+
+        public bool SendCreateServer(Guid worldId, string config, Guid nodeId)
+        {
+            NMPMessage<ServerCreateData> createMessage = new NMPMessage<ServerCreateData>(
+                "CreateServer",
+                new ServerCreateData
+                {
+                    world_id = worldId,
+                    config = config
+                }
+            );
+
+            return SendMessage<ServerCreateData>(createMessage, nodeId).Result;
+        }
+
+        public bool SendStartServer(Guid worldId, Guid nodeId)
+        {
+            NMPMessage<ServerStartData> startMessage = new NMPMessage<ServerStartData>(
+                "StartServer",
+                new ServerStartData
+                {
+                    world_id = worldId
+                }
+            );
+
+            return SendMessage<ServerStartData>(startMessage, nodeId).Result;
+        }
+
+        public bool SendStopServer(Guid worldId, Guid nodeId)
+        {
+            NMPMessage<ServerStopData> stopMessage = new NMPMessage<ServerStopData>(
+                "StopServer",
+                new ServerStopData
+                {
+                    world_id = worldId
+                }
+            );
+
+            return SendMessage<ServerStopData>(stopMessage, nodeId).Result;
+        }
+
+        public bool SendRestartServer(Guid worldId, Guid nodeId)
+        {
+            NMPMessage<ServerRestartData> restartMessage = new NMPMessage<ServerRestartData>(
+                "RestartServer",
+                new ServerRestartData
+                {
+                    world_id = worldId
+                }
+            );
+
+            return SendMessage<ServerRestartData>(restartMessage, nodeId).Result;
+        }
+
+        public bool SendDeleteServer(Guid worldId, Guid nodeId)
+        {
+            NMPMessage<ServerDeleteData> deleteMessage = new NMPMessage<ServerDeleteData>(
+                "DeleteServer",
+                new ServerDeleteData
+                {
+                    world_id = worldId
+                }
+            );
+
+            return SendMessage<ServerDeleteData>(deleteMessage, nodeId).Result;
+        }
+
+        public bool SendQuitNode(Guid nodeId)
+        {
+            NMPMessage<NMPquitData> quitMessage = new NMPMessage<NMPquitData>(
+                "QUIT",
+                new NMPquitData()
+            );
+
+            return SendMessage<NMPquitData>(quitMessage, nodeId).Result;
+        }
+
+        // Unused for now
+        private bool SendVersionError(Guid nodeId)
+        {
+            NMPMessage<UnsupportedVersionData> versionMismatchMessage = new NMPMessage<UnsupportedVersionData>(
+                "ERROR",
+                new UnsupportedVersionData
+                {
+                    message = "Version mismatch between Management Backend and Node Backend.",
+                    current_version = NMcomMessages.ProtocolVersion.ToString(),
+                }
+            );
+
+            return SendMessage<UnsupportedVersionData>(versionMismatchMessage, nodeId).Result;
+        }
+
+        private bool SendErrorMessage(Guid nodeId, string errorMessage)
+        {
+            NMPMessage<ErrorData> errorMessageObject = new NMPMessage<ErrorData>(
+                "ERROR",
+                new ErrorData
+                {
+                    message = errorMessage
+                }
+            );
+
+            return SendMessage<ErrorData>(errorMessageObject, nodeId).Result;
         }
     }
 }
