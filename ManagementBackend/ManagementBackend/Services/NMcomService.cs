@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ManagementBackend.Services
 {
@@ -9,7 +10,6 @@ namespace ManagementBackend.Services
     {
         private readonly TcpListener _listener;
         private const int TcpPort = 25565;
-        private const byte ProtocolVersion = 0x01;
         private const int HeaderSize = 5; // 1 Byte Version + 3 Bytes Länge
 
         //todo make list
@@ -129,7 +129,7 @@ namespace ManagementBackend.Services
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
                 // Peek at the type using the non-generic wrapper
-                var baseMessage = JsonSerializer.Deserialize<NMPMessage>(messageJson, options);
+                var baseMessage = JsonSerializer.Deserialize<NMPMessage<object>>(messageJson, options);
 
                 if (baseMessage == null || string.IsNullOrEmpty(baseMessage.type))
                 {
@@ -149,7 +149,7 @@ namespace ManagementBackend.Services
                             Guid receivedGuid = heloReqWrapper.data.previous_id;
                             Console.WriteLine($"Received HELOReq with ID: {receivedGuid}");
 
-                            await SendHelloResponse(receivedGuid);
+                            SendHelloResponse(receivedGuid);
                         }
                         break;
 
@@ -171,40 +171,10 @@ namespace ManagementBackend.Services
             }
         }
 
-        // Generic wrapper for specific data payloads
-        public class NMPMessage<T>
-        {
-            public string type { get; set; }
-            public T data { get; set; }
-        }
-
-        public class NMPMessage
-        {
-            public string type { get; set; }
-            public object data { get; set; }
-        }
-
-        public class ServerCreateData
-        {
-            public string world_id { get; set; }
-            public string config { get; set; }
-        }
-
-        public class HELORespData
-        {
-            public Guid active_id { get; set; }
-        }
-
-        public class HELOReqData
-        {
-            // Matches the "previous_id" field in the NMP spec
-            public Guid previous_id { get; set; }
-        }
-
-        public async Task SendHelloResponse(Guid socketGuid)
+        public void SendHelloResponse(Guid socketGuid)
         {
             var helloData = new HELORespData { active_id = socketGuid };
-            var messageObject = new NMPMessage { type = "HELOResp", data = helloData };
+            var messageObject = new NMPMessage<HELORespData>("HELOResp", helloData);
 
             SendMessage(messageObject);
         }
@@ -214,12 +184,12 @@ namespace ManagementBackend.Services
             var worldId = Guid.NewGuid().ToString();
 
             var createData = new ServerCreateData { world_id = worldId, config = config };
-            var messageObject = new NMPMessage { type = "ServerCreate", data = createData };
+            var messageObject = new NMPMessage<ServerCreateData>("ServerCreate", createData);
 
             SendMessage(messageObject);
         }
 
-        private void SendMessage(NMPMessage messageObject)
+        private void SendMessage(NMPMessageBase messageObject)
         {
             if (_connectedSocket == null || !_connectedSocket.Connected)
             {
@@ -227,24 +197,10 @@ namespace ManagementBackend.Services
                 return;
             }
 
-            string jsonPayload = JsonSerializer.Serialize(messageObject);
-            byte[] payloadBytes = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
-            int payloadLength = payloadBytes.Length;
+            var message = NMcomMessages.CreateMessage(messageObject);
 
-            byte[] frame = new byte[1 + 4 + payloadLength];
-
-            frame[0] = ProtocolVersion;
-
-            byte[] lengthBytes = BitConverter.GetBytes(payloadLength);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(lengthBytes);
-            }
-            Array.Copy(lengthBytes, 0, frame, 1, 4);
-            Array.Copy(payloadBytes, 0, frame, 5, payloadLength);
-
-            var kek = _connectedSocket.Send(frame);
-            Console.WriteLine($"Sent message of type {messageObject.type} with length {payloadLength} bytes.");
+            var kek = _connectedSocket.Send(message);
+            Console.WriteLine($"Sent message of type {messageObject.type}.");
         }
     }
 }

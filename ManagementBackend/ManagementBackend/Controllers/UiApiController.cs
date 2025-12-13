@@ -107,7 +107,7 @@ namespace ManagementBackend.Controllers
                 OwnerId = Guid.Parse(ownerId),
             };
 
-            // Send to Node
+            // if Send to Node == success
             // Save to DB
 
             return Ok("World Created with ID: " + world.Id);
