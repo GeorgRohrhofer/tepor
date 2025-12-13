@@ -1,0 +1,6 @@
+name: VelocityPlugin
+version: 1.0.0
+main: tepor.velocityplugin.VelocityPlugin
+description: Tepor Velocity Plugin 
+author: Georg Rohrhofer
+api-version: '1.21.10'
