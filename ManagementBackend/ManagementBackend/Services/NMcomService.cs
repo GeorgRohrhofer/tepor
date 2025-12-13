@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using ManagementBackend.DataModels;
+using ManagementBackend.resources;
+using Microsoft.Extensions.Hosting;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ManagementBackend.Services
 {
@@ -10,20 +11,22 @@ namespace ManagementBackend.Services
     {
         private readonly TcpListener _listener;
         private const int TcpPort = 25565;
-        private const int HeaderSize = 5; // 1 Byte Version + 3 Bytes Länge
+        private Dictionary<Guid, Socket> connectedSockets;
+        private MyDbContext db;
+        private readonly DiscordMessageSender _discordSender;
 
-        //todo make list
-        private Socket _connectedSocket;
-
-        public NMcomService()
+        public NMcomService(MyDbContext db, DiscordMessageSender discordSender)
         {
+            _discordSender = discordSender;
+            this.db = db;
             _listener = new TcpListener(IPAddress.Any, TcpPort);
+            connectedSockets = new Dictionary<Guid, Socket>();
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _listener.Start();
-            _ = ListenForConnectionsAsync();
+            _ = ListenForConnectionsAsync(cancellationToken);
 
             return Task.CompletedTask;
         }
@@ -35,14 +38,14 @@ namespace ManagementBackend.Services
             return Task.CompletedTask;
         }
 
-        private async Task ListenForConnectionsAsync()
+        private async Task ListenForConnectionsAsync(CancellationToken cancellationToken)
         {
             try
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     var socket = await _listener.AcceptSocketAsync();  // Accept an incoming client socket
-                    _connectedSocket = socket;
+                    connectedSockets.Add(Guid.Parse("00000000-0000-0000-0000-000000000000"), socket);
                     _ = HandleConnection(socket);
                 }
             }
@@ -64,7 +67,7 @@ namespace ManagementBackend.Services
             {
                 while (socket.Connected)
                 {
-                    await ReadMessage(stream);
+                    await ProcessMessage(stream);
                 }
             }
             catch (Exception ex)
@@ -78,129 +81,107 @@ namespace ManagementBackend.Services
             }
         }
 
-        private async Task ReadMessage(NetworkStream stream)
+        private async Task ProcessMessage(NetworkStream stream)
         {
-            byte[] headerBuffer = new byte[HeaderSize];
+            var (type, json) = NMcomMessages.ReadMessage(stream);
 
-            if (await ReadFullyAsync(stream, headerBuffer, HeaderSize) != HeaderSize)
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            options.Converters.Add(new FlexibleGuidConverter());
+
+            switch (type)
             {
-                return;
-            }
-
-            byte version = headerBuffer[0];
-            //int messageLength = (headerBuffer[1] << 16) | (headerBuffer[2] << 8) | headerBuffer[3];
-            int messageLength = (headerBuffer[1] << 24) | (headerBuffer[2] << 16) | (headerBuffer[3] << 8) | headerBuffer[4];
-
-
-            Console.WriteLine($"Protocol Version: {version}, Message Length: {messageLength} bytes");
-
-            if (messageLength > 0)
-            {
-                byte[] messageBuffer = new byte[messageLength];
-                if (await ReadFullyAsync(stream, messageBuffer, messageLength) == messageLength)
-                {
-                    ProcessMessage(version, messageBuffer);
-                }
-            }
-        }
-
-        private async Task<int> ReadFullyAsync(Stream stream, byte[] buffer, int count)
-        {
-            int totalBytesRead = 0;
-            while (totalBytesRead < count)
-            {
-                int bytesRead = await stream.ReadAsync(buffer, totalBytesRead, count - totalBytesRead);
-
-                if (bytesRead == 0) // Stream-Ende erreicht, bevor alle Bytes gelesen wurden
+                case "HELOReq":
+                    var heloReq = JsonSerializer.Deserialize<NMPMessage<HELOReqData>>(json, options);
+                    HandleHeloRequest(heloReq, stream.Socket);
                     break;
-
-                totalBytesRead += bytesRead;
+                case "WorldSaved":
+                    var worldSaved = JsonSerializer.Deserialize<NMPMessage<WorldSavedData>>(json, options);
+                    if (worldSaved != null)
+                    {
+                        HandleWorldSaved(worldSaved);
+                    }
+                    break;
+                case "ERROR":
+                    var error = JsonSerializer.Deserialize<NMPMessage<ErrorData>>(json, options);
+                    if (error != null)
+                    {
+                        HandleError(error);
+                    }
+                    break;
+                case "QUIT":
+                    HandleQuit(stream.Socket);
+                    break;
+                default:
+                    Console.WriteLine($"Received unsupported command type: {type}");
+                    break;
             }
-            return totalBytesRead;
         }
 
-        private async Task ProcessMessage(byte version, byte[] messageData)
+        private async Task HandleHeloRequest(NMPMessage<HELOReqData> heloReq, Socket socket)
         {
-            string messageJson = System.Text.Encoding.UTF8.GetString(messageData);
-            Console.WriteLine($"Processed message (Version {version}): {messageJson}");
+            if (heloReq == null || heloReq.data == null)
+                return;
 
-            try
+            var nodeInDb = db.Nodes.FirstOrDefault(n => n.Id == heloReq.data.previous_id);
+
+            if (nodeInDb == null)
             {
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-                // Peek at the type using the non-generic wrapper
-                var baseMessage = JsonSerializer.Deserialize<NMPMessage<object>>(messageJson, options);
-
-                if (baseMessage == null || string.IsNullOrEmpty(baseMessage.type))
+                db.Nodes.Add(new Node
                 {
-                    Console.WriteLine("Invalid NMP message format.");
-                    return;
-                }
-
-                switch (baseMessage.type)
-                {
-                    case "HELOReq":
-                        // Deserialize the entire payload into the specific type wrapper
-                        var heloReqWrapper = JsonSerializer.Deserialize<NMPMessage<HELOReqData>>(messageJson, options);
-
-                        if (heloReqWrapper?.data != null)
-                        {
-                            // Access the directly converted Guid property
-                            Guid receivedGuid = heloReqWrapper.data.previous_id;
-                            Console.WriteLine($"Received HELOReq with ID: {receivedGuid}");
-
-                            SendHelloResponse(receivedGuid);
-                        }
-                        break;
-
-                    case "QUIT":
-                        Console.WriteLine("Received QUIT command. Closing connection.");
-                        break;
-
-                    // Add other cases here
-                    default:
-                        Console.WriteLine($"Received unsupported command type: {baseMessage.type}");
-                        break;
-                }
+                    Id = heloReq.data.previous_id,
+                    Ram = 0,
+                    Cpu = 0
+                });
+                await db.SaveChangesAsync();
             }
-            catch (JsonException ex)
-            {
-                // This catch block will only trigger if the JSON is malformed or the GUID
-                // is not in a standard format (e.g., still has braces).
-                Console.WriteLine($"JSON Deserialization error: {ex.Message}");
-            }
+
+            connectedSockets[heloReq.data.previous_id] = socket;
+
+            var helloRespData = new HELORespData {active_id = heloReq.data.previous_id};
+            var messageObject = new NMPMessage<HELORespData>("HELOResp", helloRespData);
+            await SendMessage(messageObject, heloReq.data.previous_id);
         }
 
-        public void SendHelloResponse(Guid socketGuid)
+        private async Task HandleWorldSaved(NMPMessage<WorldSavedData> worldSaved)
         {
-            var helloData = new HELORespData { active_id = socketGuid };
-            var messageObject = new NMPMessage<HELORespData>("HELOResp", helloData);
+            if (worldSaved == null || worldSaved.data == null)
+                return;
 
-            SendMessage(messageObject);
+            var world = db.Worlds.FirstOrDefault(w => w.Id == worldSaved.data.world_id);
+
+            if (world == null)
+                return;
+
+            world.Hash = worldSaved.data.hash;
+            await db.SaveChangesAsync();
         }
 
-        public void SendCreateServer(string config)
+        private async Task HandleError(NMPMessage<ErrorData> error)
         {
-            var worldId = Guid.NewGuid().ToString();
+            if (error == null || error.data == null)
+                return;
 
-            var createData = new ServerCreateData { world_id = worldId, config = config };
-            var messageObject = new NMPMessage<ServerCreateData>("ServerCreate", createData);
-
-            SendMessage(messageObject);
+            await _discordSender.SendDm("Error from Node: " + error.data.message, _discordSender.discordBotUserIds.ToArray());
         }
 
-        private void SendMessage(NMPMessageBase messageObject)
+        private async Task HandleQuit(Socket socket)
         {
-            if (_connectedSocket == null || !_connectedSocket.Connected)
+            socket.Close();
+        }
+
+        private async Task SendMessage<T>(NMPMessage<T> messageObject, Guid nodeId)
+        {
+            var socket = connectedSockets.GetValueOrDefault(nodeId);
+
+            if (socket == null || !socket.Connected)
             {
                 Console.WriteLine("Socket not connected. Cannot send message.");
                 return;
             }
 
-            var message = NMcomMessages.CreateMessage(messageObject);
+            var message = NMcomMessages.CreateMessage<T>(messageObject);
 
-            var kek = _connectedSocket.Send(message);
-            Console.WriteLine($"Sent message of type {messageObject.type}.");
+            var kek = await socket.SendAsync(message);
         }
     }
 }
