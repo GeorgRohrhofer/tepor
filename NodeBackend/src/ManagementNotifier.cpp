@@ -71,7 +71,7 @@ void ManagementNotifier::onMessageReceived(const QByteArray &data) {
         emit errorOccurred("Version mismatch");
       } else if (message["type"] == "HELOResp") {
         activeId = message["data"]["active_id"];
-        emit registered();
+        emit registered(activeId);
       }
     }
   } catch (json::parse_error &e) {

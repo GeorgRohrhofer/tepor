@@ -23,7 +23,7 @@ public:
 signals:
   void connected();
   void disconnected();
-  void registered();
+  void registered(std::string activeId);
 
   void serverCreateReceived(std::string worldId, std::string config);
   void serverStartReceived(std::string worldId);

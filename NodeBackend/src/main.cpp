@@ -10,7 +10,10 @@
 #include <qlogging.h>
 #include <qmap.h>
 #include <qobject.h>
+#include <qtypes.h>
 #include <string>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "DatabaseManager.h"
 #include "ManagementNotifier.h"
@@ -19,6 +22,7 @@
 using namespace std;
 
 bool isPortAvailable(quint16 port);
+void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp, qint16 port);
 
 int main(int argc, char *argv[]) {
   //----------------------------------------------------------------------------
@@ -34,6 +38,19 @@ int main(int argc, char *argv[]) {
 
   quint16 port = 8000;
   cliApp.add_option("-p, --port", port, "Port to connect to");
+
+  string monitorExe = "/srv/tepor/MonitoringClient";
+  cliApp.add_option("-e, --monitor-exe", monitorExe,
+      "Path to the monitoring client executable");
+
+  string monitorIp = "monitor.tepor.at";
+  cliApp.add_option("-i, --monitor-ip", monitorIp,
+      "IP to connect the monitoring client to");
+
+  quint16 monitorPort = 6942;
+  cliApp.add_option("-m, --monitor-port", monitorPort,
+                    "Port to connect the monitoring client to");
+
 
   CLI11_PARSE(cliApp, argc, argv);
 
@@ -127,7 +144,12 @@ int main(int argc, char *argv[]) {
                      loop.quit();
                    });
 
-  QObject::connect(mngr, &ManagementNotifier::registered, [&]() {});
+  QObject::connect(mngr, &ManagementNotifier::registered, [&](string activeId) {
+    QString activeIdQString = QString::fromStdString(activeId);
+    db->executeCommand("UPDATE Node SET id = '" + activeIdQString + "'");
+
+    startMonitoringClient(monitorExe, activeId, monitorIp, monitorPort);
+  });
 
   mngr->sendRegister(
       QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString()));
@@ -143,4 +165,20 @@ bool isPortAvailable(quint16 port) {
   bool success = server.listen(QHostAddress::Any, port);
   server.close();
   return success;
+}
+
+void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp, qint16 port) {
+  pid_t pid = fork();
+  if (pid == 0) {
+    execl(monitorExe.c_str(), "MonitoringClient", "--ipaddress",
+          MonServerIp.c_str(), "--port", port, "--nodeid", nodeId.c_str(),
+          NULL);
+
+    qCritical() << "Error starting monitoring client";
+    exit(1);
+  } else if (pid > 0) {
+    qInfo() << "Monitoring client started with PID: " << pid;
+  } else {
+    qCritical() << "Fork failed";
+  }
 }
