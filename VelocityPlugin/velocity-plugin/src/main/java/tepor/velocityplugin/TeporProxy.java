@@ -2,8 +2,10 @@ package tepor.velocityplugin;
 
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
+import com.velocitypowered.api.proxy.server.RegisteredServer;
 import java.io.*;
 import java.net.*;
+import java.util.Optional;
 import java.nio.ByteBuffer;
 import com.google.gson.Gson;
 
@@ -63,6 +65,13 @@ public class TeporProxy {
           String jsonString = new String(jsonBytes, "UTF-8");
                    
           ServerMessage message = gson.fromJson(jsonString, ServerMessage.class);
+
+          if (message.getRegister()) 
+          {
+            RegisterServer(message);
+          } else {
+            UnregisterServer(message);
+          }
         } catch (EOFException e) {
           System.out.println("Client disconnected");
           break;
@@ -87,5 +96,13 @@ public class TeporProxy {
         );
 
     server.registerServer(serverInfo);
+  }
+
+  private void UnregisterServer(ServerMessage message) {
+    Optional<RegisteredServer> serverInfo = server.getServer(message.getServerName());
+
+    if (serverInfo.isPresent()) {
+      server.unregisterServer(serverInfo.get().getServerInfo());
+    }
   }
 }

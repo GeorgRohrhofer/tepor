@@ -1,10 +1,19 @@
 package tepor.velocityplugin;
 
 class ServerMessage {
+  private Boolean register;
   private String serverName;
   private String ipAddress;
   private int port;
-    
+  
+  public Boolean getRegister() {
+    return register;
+  }
+
+  public void setRegister(Boolean register) {
+    this.register = register;
+  }
+
   public String getServerName() {
     return serverName;
   }
