@@ -91,21 +91,15 @@ namespace ManagementBackend.Services
             {
                 case "HELOReq":
                     var heloReq = JsonSerializer.Deserialize<NMPMessage<HELOReqData>>(json, options);
-                    HandleHeloRequest(heloReq, stream.Socket);
+                    _ = HandleHeloRequest(heloReq, stream.Socket);
                     break;
                 case "WorldSaved":
                     var worldSaved = JsonSerializer.Deserialize<NMPMessage<WorldSavedData>>(json, options);
-                    if (worldSaved != null)
-                    {
-                        HandleWorldSaved(worldSaved);
-                    }
+                    _ = HandleWorldSaved(worldSaved);
                     break;
                 case "ERROR":
                     var error = JsonSerializer.Deserialize<NMPMessage<ErrorData>>(json, options);
-                    if (error != null)
-                    {
-                        HandleError(error);
-                    }
+                    _ = HandleError(error);
                     break;
                 case "QUIT":
                     HandleQuit(stream.Socket);
@@ -116,7 +110,7 @@ namespace ManagementBackend.Services
             }
         }
 
-        private async Task HandleHeloRequest(NMPMessage<HELOReqData> heloReq, Socket socket)
+        private async Task HandleHeloRequest(NMPMessage<HELOReqData> ?heloReq, Socket socket)
         {
             if (heloReq == null || heloReq.data == null)
                 return;
@@ -141,7 +135,7 @@ namespace ManagementBackend.Services
             await SendMessage(messageObject, heloReq.data.previous_id);
         }
 
-        private async Task HandleWorldSaved(NMPMessage<WorldSavedData> worldSaved)
+        private async Task HandleWorldSaved(NMPMessage<WorldSavedData> ?worldSaved)
         {
             if (worldSaved == null || worldSaved.data == null)
                 return;
@@ -155,7 +149,7 @@ namespace ManagementBackend.Services
             await db.SaveChangesAsync();
         }
 
-        private async Task HandleError(NMPMessage<ErrorData> error)
+        private async Task HandleError(NMPMessage<ErrorData> ?error)
         {
             if (error == null || error.data == null)
                 return;
@@ -163,7 +157,7 @@ namespace ManagementBackend.Services
             await _discordSender.SendDm("Error from Node: " + error.data.message, _discordSender.discordBotUserIds.ToArray());
         }
 
-        private async Task HandleQuit(Socket socket)
+        private void HandleQuit(Socket socket)
         {
             socket.Close();
         }
