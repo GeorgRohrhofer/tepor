@@ -26,8 +26,6 @@ namespace ManagementBackend.Services
             var url = ipAdress + "/message/send/channel";
 
             var response = await httpClient.PostAsync(ipAdress, content);
-
-            // Log Response
         }
 
         public async Task SendDm(string messageContent, string[] userIds)
@@ -39,8 +37,6 @@ namespace ManagementBackend.Services
             var url = ipAdress + "/message/send/direct";
 
             var response = await httpClient.PostAsync(ipAdress, content);
-
-            // Log Response
         }
     }
 
