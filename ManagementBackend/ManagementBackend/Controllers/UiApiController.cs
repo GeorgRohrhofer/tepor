@@ -62,10 +62,14 @@ namespace ManagementBackend.Controllers
             return Ok(json);
         }
 
-        [HttpGet("GetWorldsByOwner")]
-        public ObjectResult GetWorldsByOwner([FromHeader(Name = "ownderId")] Guid ownerId)
+        [HttpGet("GetWorldsByCurrentUser")]
+        public ObjectResult GetWorldsByCurrentUser()
         {
-            var worlds = db.Worlds.Where(w => w.OwnerId == ownerId);
+            var ownerId = User.FindFirst("sub")?.Value;
+            if (ownerId == null)
+                return BadRequest("User ID not found in token.");
+
+            var worlds = db.Worlds.Where(w => w.OwnerId == Guid.Parse(ownerId));
             string json = JsonSerializer.Serialize(worlds);
 
             return Ok(json);
