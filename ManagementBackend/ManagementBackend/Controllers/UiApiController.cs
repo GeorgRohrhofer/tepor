@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 using ManagementBackend.DataModels;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ManagementBackend.Controllers
 {
@@ -107,8 +108,26 @@ namespace ManagementBackend.Controllers
                 OwnerId = Guid.Parse(ownerId),
             };
 
-            // if Send to Node == success
-            // Save to DB
+            var allNodes = db.Nodes.ToList();
+            var random = new Random();
+            var node = allNodes[random.Next(allNodes.Count)];
+
+            var worldStore = new WorldStore()
+            {
+                Id = Guid.NewGuid(),
+                WorldId = world.Id,
+                RunningNodeId = node.Id,
+                BackUpNodeIds = new List<Guid>(),
+            };
+
+            if (!_nmComService.SendCreateServer(world.Id, world.Config, node.Id))
+                return Problem("Failed to Create the World.");
+            if(!_nmComService.SendStartServer(world.Id, node.Id))
+                return Problem("Failed to Start the World.");
+
+            db.Worlds.Add(world);
+            db.WorldStores.Add(worldStore);
+            db.SaveChanges();
 
             return Ok("World Created with ID: " + world.Id);
         }
@@ -116,7 +135,11 @@ namespace ManagementBackend.Controllers
         [HttpDelete("DeleteWorld")]
         public ObjectResult DeleteWorld([FromHeader(Name = "worldId")] Guid worldId)
         {
-            // Send to Node
+            var nodeId = db.WorldStores.Where(ws => ws.WorldId == worldId).Select(ws => ws.RunningNodeId).FirstOrDefault();
+            if (!_nmComService.SendStopServer(worldId, nodeId))
+                return Problem("Failed to Stop the World.");
+            if (!_nmComService.SendDeleteServer(worldId, nodeId))
+                return Problem("Failed to Delete the World.");
 
             db.Worlds.RemoveRange(db.Worlds.Where(w => w.Id == worldId));
 
