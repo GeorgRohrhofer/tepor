@@ -69,7 +69,7 @@ namespace ManagementBackend
             var dbContext = new MyDbContext();
             builder.Services.AddSingleton(dbContext);
 
-            // Typ Socket
+            // Tcp Socket
             builder.Services.AddSingleton<NMcomService>();
             builder.Services.AddHostedService(provider => provider.GetRequiredService<NMcomService>());
 
