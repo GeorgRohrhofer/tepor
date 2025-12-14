@@ -20,22 +20,6 @@ namespace ManagementBackend.Controllers
             this.db = db;
         }
 
-        [HttpGet("TestEndpoint")]
-        public string TestEndpoint()
-        {
-            var kek = new DataModels.Node() {
-                Id = Guid.NewGuid(),
-                Ram = 3.1,
-                Cpu = 124.052
-            };
-
-            db.Add(kek);
-            db.SaveChanges();
-            var bruh = db.Nodes.FirstOrDefault();
-
-            return "Endpoint works!\n" + bruh.Id;
-        }
-
         [HttpPost("SendDiscordDm")]
         public async Task<ObjectResult> SendDiscordDm(
             [FromHeader(Name ="message")] string message,
@@ -56,10 +40,12 @@ namespace ManagementBackend.Controllers
             return Ok("Message Sent");
         }
 
-        [HttpGet("WhoAmI")]
-        public string WhoAmI()
+        [HttpGet("MonitoringData")]
+        public async Task<ObjectResult> MonitoringData()
         {
-            return User.FindFirst("username")?.Value ?? "No username found.";
+            var kek = new MonitoringComService(db);
+
+            return Ok(await kek.GetMonitoringData());
         }
     }
 }
