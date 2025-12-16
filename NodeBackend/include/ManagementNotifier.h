@@ -19,6 +19,7 @@ public:
   ~ManagementNotifier();
   void sendWorldSaved(std::string worldName, std::string hash);
   void sendRegister(QUuid uuid);
+  void sendQuit();
 
 signals:
   void connected();

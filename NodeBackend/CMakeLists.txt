@@ -15,7 +15,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(CLI11)
 
 # Qt6 Module
-find_package(Qt6 REQUIRED COMPONENTS Core Network Sql)
+find_package(Qt6 REQUIRED COMPONENTS Core Network Sql Widgets)
 set(CMAKE_AUTOMOC ON)
 
 # FetchContent for nlohmann/json
@@ -68,5 +68,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Network
     Qt6::Sql
+    Qt6::Widgets
     CLI11::CLI11
 )

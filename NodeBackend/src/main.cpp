@@ -3,9 +3,11 @@
 #include <QDebug>
 #include <QEventLoop>
 #include <QObject>
+#include <QShortcut>
 #include <QTcpServer>
 #include <QTimer>
 #include <QUuid>
+#include <csignal>
 #include <filesystem>
 #include <qlogging.h>
 #include <qmap.h>
@@ -18,7 +20,10 @@
 
 using namespace std;
 
+std::function<void(int)> g_signalHandler;
+
 bool isPortAvailable(quint16 port);
+void signalHandlerWrapper(int signal);
 
 int main(int argc, char *argv[]) {
   //----------------------------------------------------------------------------
@@ -65,7 +70,7 @@ int main(int argc, char *argv[]) {
                    [&](std::string worldId, std::string config) {
                      filesystem::path worldPath =
                          filesystem::path("/srv/tepor/worlds") / worldId;
-
+                     qDebug() << "helo";
                      if (!filesystem::exists(worldPath)) {
                        filesystem::create_directories(worldPath);
                      }
@@ -80,6 +85,7 @@ int main(int argc, char *argv[]) {
                        }
                      }
 
+                     qDebug() << "helo";
                      instances.insert(worldId, new MinecraftInstance(
                                                    worldId, config,
                                                    worldPath.string(), port));
@@ -129,6 +135,17 @@ int main(int argc, char *argv[]) {
 
   QObject::connect(mngr, &ManagementNotifier::registered, [&]() {});
 
+  g_signalHandler = [&](int signal) {
+    if (signal == SIGINT) {
+      qDebug() << "\nCtrl+C detected...";
+      mngr->sendQuit();
+      loop.quit();
+    }
+  };
+
+  // Signal-Handler registrieren
+  std::signal(SIGINT, signalHandlerWrapper);
+
   mngr->sendRegister(
       QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString()));
   loop.exec();
@@ -143,4 +160,10 @@ bool isPortAvailable(quint16 port) {
   bool success = server.listen(QHostAddress::Any, port);
   server.close();
   return success;
+}
+
+void signalHandlerWrapper(int signal) {
+    if (g_signalHandler) {
+        g_signalHandler(signal);
+    }
 }
