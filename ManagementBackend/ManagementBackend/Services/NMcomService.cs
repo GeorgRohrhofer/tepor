@@ -9,15 +9,15 @@ namespace ManagementBackend.Services
     public class NMcomService : IHostedService
     {
         private readonly TcpListener _listener;
-        private const int TcpPort = 25565;
+        private const int TcpPort = 5278;
         private Dictionary<Guid, Socket> connectedSockets;
-        private MyDbContext db;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly DiscordMessageSender _discordSender;
 
-        public NMcomService(MyDbContext db, DiscordMessageSender discordSender)
+        public NMcomService(IServiceScopeFactory scopeFactory, DiscordMessageSender discordSender)
         {
+            _scopeFactory = scopeFactory;
             _discordSender = discordSender;
-            this.db = db;
             _listener = new TcpListener(IPAddress.Any, TcpPort);
             connectedSockets = new Dictionary<Guid, Socket>();
         }
@@ -115,9 +115,12 @@ namespace ManagementBackend.Services
             if (heloReq == null || heloReq.data == null)
                 return;
 
-            var nodeInDb = db.Nodes.FirstOrDefault(n => n.Id == heloReq.data.previous_id);
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
 
-            if (nodeInDb == null)
+            var nodeInDb = db.Nodes.Where(n => n.Id == heloReq.data.previous_id).Any();
+
+            if (!nodeInDb)
             {
                 db.Nodes.Add(new Node
                 {
@@ -139,6 +142,9 @@ namespace ManagementBackend.Services
         {
             if (worldSaved == null || worldSaved.data == null)
                 return;
+
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
 
             var world = db.Worlds.FirstOrDefault(w => w.Id == worldSaved.data.world_id);
 

@@ -11,11 +11,13 @@ namespace ManagementBackend.Controllers
     [Authorize(Roles = "admin")]
     public class TestController : ControllerBase
     {
+        private readonly MonitoringComService _monitoringComService;
         private readonly DiscordMessageSender _discordSender;
         private MyDbContext db;
 
-        public TestController(DiscordMessageSender discordSender, MyDbContext db)
+        public TestController(DiscordMessageSender discordSender, MyDbContext db, MonitoringComService monitoringComService)
         {
+            _monitoringComService = monitoringComService;
             _discordSender = discordSender;
             this.db = db;
         }
@@ -43,9 +45,7 @@ namespace ManagementBackend.Controllers
         [HttpGet("MonitoringData")]
         public async Task<ObjectResult> MonitoringData()
         {
-            var kek = new MonitoringComService(db);
-
-            return Ok(await kek.GetMonitoringData());
+            return Ok(await _monitoringComService.GetMonitoringData());
         }
     }
 }

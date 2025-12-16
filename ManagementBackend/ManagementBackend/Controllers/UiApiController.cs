@@ -1,12 +1,13 @@
-﻿using ManagementBackend.resources;
+﻿using ManagementBackend.DataModels;
+using ManagementBackend.resources;
 using ManagementBackend.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
-using ManagementBackend.DataModels;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace ManagementBackend.Controllers
 {
@@ -65,7 +66,7 @@ namespace ManagementBackend.Controllers
         [HttpGet("GetWorldsByCurrentUser")]
         public ObjectResult GetWorldsByCurrentUser()
         {
-            var ownerId = User.FindFirst("sub")?.Value;
+            var ownerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (ownerId == null)
                 return BadRequest("User ID not found in token.");
 
@@ -99,7 +100,7 @@ namespace ManagementBackend.Controllers
             if (request == null)
                 return BadRequest("Invalid request body.");
 
-            var ownerId = User.FindFirst("sub")?.Value;
+            var ownerId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (ownerId == null)
                 return BadRequest("User ID not found in token.");
 

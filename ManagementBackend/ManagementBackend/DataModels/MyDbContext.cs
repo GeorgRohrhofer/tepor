@@ -9,7 +9,6 @@ namespace ManagementBackend.DataModels
         public DbSet<Log> Logs { get; set; }
         public DbSet<Node> Nodes { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseSqlite(@"Data Source=C:\temp\Demo.db");
+        public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
     }
 }

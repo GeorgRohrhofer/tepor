@@ -8,19 +8,25 @@ namespace ManagementBackend.Services
 {
     public class MonitoringComService
     {
-        private string ipAdress = "http://127.0.0.1:6943";
-        private MyDbContext db;
+        private readonly string _ipAdress;
+        private readonly IServiceScopeFactory _scopeFactory;
         private HttpClient httpClient;
 
-        public MonitoringComService(MyDbContext db)
+        public MonitoringComService(string ipAdress, IServiceScopeFactory scopeFactory)
         {
+            this._ipAdress = ipAdress;
             httpClient = new HttpClient();
-            this.db = db;
+            _scopeFactory = scopeFactory;
         }
 
         public async Task<string> GetMonitoringData()
         {
-            var url = ipAdress + "/monitor/all";
+            var url = _ipAdress + "/monitor/all";
+
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+            db.Logs.Add(new Log() { Id=Guid.NewGuid(), RamUsage=69.420});
+            await db.SaveChangesAsync();
 
             var response = await httpClient.GetAsync(url);
             return response.Content.ReadAsStringAsync().Result;

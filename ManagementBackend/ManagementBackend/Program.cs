@@ -3,6 +3,7 @@ using ManagementBackend.resources;
 using ManagementBackend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManagementBackend
 {
@@ -11,6 +12,13 @@ namespace ManagementBackend
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Add DbContext
+            builder.Services.AddDbContext<MyDbContext>(options =>
+            {
+                var cs = builder.Configuration.GetConnectionString("DefaultDbConnection");
+                options.UseNpgsql(cs);
+            });
 
             // Add CORS policy to allow all origins, headers, and methods.
             builder.Services.AddCors(options =>
@@ -49,8 +57,8 @@ namespace ManagementBackend
                     };
                 });
 
-            builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            builder.Services.AddControllers();
             builder.Services.AddOpenApi();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -65,15 +73,29 @@ namespace ManagementBackend
             var discordMessageSender = new DiscordMessageSender(discordBotIp, discordBotDefaultUserId);
             builder.Services.AddSingleton(discordMessageSender);
 
-            // Add DbContext
-            var dbContext = new MyDbContext();
-            builder.Services.AddSingleton(dbContext);
+            // MonitoringComService as singleton
+            builder.Services.AddSingleton<MonitoringComService>(sp =>
+            {
+                var monitorIp = builder.Configuration.GetSection("MonitoringIp").Get<string>()
+                               ?? throw new Exception("MonitoringIp section is missing in configuration.");
+
+                var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+
+                return new MonitoringComService(monitorIp, scopeFactory);
+            });
 
             // Tcp Socket
             builder.Services.AddSingleton<NMcomService>();
             builder.Services.AddHostedService(provider => provider.GetRequiredService<NMcomService>());
 
             var app = builder.Build();
+
+            // Ensure Db is created and migrated
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+                db.Database.Migrate();
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
