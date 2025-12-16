@@ -1,4 +1,5 @@
-﻿using ManagementBackend.resources;
+﻿using ManagementBackend.DataModels;
+using ManagementBackend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
@@ -10,17 +11,15 @@ namespace ManagementBackend.Controllers
     [Authorize(Roles = "admin")]
     public class TestController : ControllerBase
     {
+        private readonly MonitoringComService _monitoringComService;
         private readonly DiscordMessageSender _discordSender;
+        private MyDbContext db;
 
-        public TestController(DiscordMessageSender discordSender)
+        public TestController(DiscordMessageSender discordSender, MyDbContext db, MonitoringComService monitoringComService)
         {
+            _monitoringComService = monitoringComService;
             _discordSender = discordSender;
-        }
-
-        [HttpGet("TestEndpoint")]
-        public string TestEndpoint()
-        {
-            return "Endpoint works!";
+            this.db = db;
         }
 
         [HttpPost("SendDiscordDm")]
@@ -43,10 +42,10 @@ namespace ManagementBackend.Controllers
             return Ok("Message Sent");
         }
 
-        [HttpGet("WhoAmI")]
-        public string WhoAmI()
+        [HttpGet("MonitoringData")]
+        public async Task<ObjectResult> MonitoringData()
         {
-            return User.FindFirst("preferred_username")?.Value ?? "No username found.";
+            return Ok(await _monitoringComService.GetMonitoringData());
         }
     }
 }

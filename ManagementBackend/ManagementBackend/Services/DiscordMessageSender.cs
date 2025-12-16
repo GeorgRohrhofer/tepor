@@ -1,17 +1,20 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-namespace ManagementBackend.resources
+namespace ManagementBackend.Services
 {
     public class DiscordMessageSender
     {
         private string ipAdress;
         private HttpClient httpClient;
+        public List<string> discordBotUserIds;
 
-        public DiscordMessageSender(string ipAdress)
+        public DiscordMessageSender(string ipAdress, string discordBotDefaultUserId)
         {
             this.ipAdress = ipAdress;
-            this.httpClient = new HttpClient();
+            httpClient = new HttpClient();
+            discordBotUserIds = new List<string>();
+            discordBotUserIds.Add(discordBotDefaultUserId);
         }
 
         public async Task SendMessageToChannel(string messageContent, string[] channelIds)
@@ -23,8 +26,6 @@ namespace ManagementBackend.resources
             var url = ipAdress + "/message/send/channel";
 
             var response = await httpClient.PostAsync(ipAdress, content);
-
-            // Log Response
         }
 
         public async Task SendDm(string messageContent, string[] userIds)
@@ -36,8 +37,6 @@ namespace ManagementBackend.resources
             var url = ipAdress + "/message/send/direct";
 
             var response = await httpClient.PostAsync(ipAdress, content);
-
-            // Log Response
         }
     }
 

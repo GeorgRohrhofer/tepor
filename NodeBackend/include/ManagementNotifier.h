@@ -24,7 +24,7 @@ public:
 signals:
   void connected();
   void disconnected();
-  void registered();
+  void registered(std::string activeId);
 
   void serverCreateReceived(std::string worldId, std::string config);
   void serverStartReceived(std::string worldId);
@@ -33,7 +33,7 @@ signals:
   void serverDeleteReceived(std::string worldId);
   void updateConfigReceived(std::string worldId, std::string config);
 
-  void worldSyncReceived();
+  void worldSyncReceived(std::string worldId, std::string ipaddr);
   void errorOccurred(const QString &error);
 
 private slots:
