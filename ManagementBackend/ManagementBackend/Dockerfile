@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS buildARG TARGETARCH
+ARG TARGETARCH
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 RUN dotnet nuget locals all --clear
