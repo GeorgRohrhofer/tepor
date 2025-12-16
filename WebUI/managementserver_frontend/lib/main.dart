@@ -5,7 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme.dart';
 import 'layout/main_layout.dart';
 
-import 'API/API_UIDATA.dart';
+import 'api/API_UIDATA.dart';
 import 'viewmodels/world_list_viewmodel.dart';
 import 'viewmodels/servernode_list_viewmodel.dart';
 

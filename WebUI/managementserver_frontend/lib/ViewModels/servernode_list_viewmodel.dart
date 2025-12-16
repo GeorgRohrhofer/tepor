@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../API/API_UIDATA.dart';
+import '../api/API_UIDATA.dart';
 import '../models/servernode.dart';
 
 class ServerNodeListViewModel extends ChangeNotifier {
