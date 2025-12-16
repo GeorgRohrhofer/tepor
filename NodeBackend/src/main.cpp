@@ -6,6 +6,7 @@
 #include <QTcpServer>
 #include <QTimer>
 #include <QUuid>
+#include <cerrno>
 #include <filesystem>
 #include <qlogging.h>
 #include <qmap.h>
@@ -22,7 +23,8 @@
 using namespace std;
 
 bool isPortAvailable(quint16 port);
-void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp, qint16 port);
+void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp,
+                           qint16 port);
 
 int main(int argc, char *argv[]) {
   //----------------------------------------------------------------------------
@@ -41,16 +43,15 @@ int main(int argc, char *argv[]) {
 
   string monitorExe = "/srv/tepor/MonitoringClient";
   cliApp.add_option("-e, --monitor-exe", monitorExe,
-      "Path to the monitoring client executable");
+                    "Path to the monitoring client executable");
 
   string monitorIp = "monitor.tepor.at";
   cliApp.add_option("-i, --monitor-ip", monitorIp,
-      "IP to connect the monitoring client to");
+                    "IP to connect the monitoring client to");
 
   quint16 monitorPort = 6942;
   cliApp.add_option("-m, --monitor-port", monitorPort,
                     "Port to connect the monitoring client to");
-
 
   CLI11_PARSE(cliApp, argc, argv);
 
@@ -155,7 +156,7 @@ int main(int argc, char *argv[]) {
       QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString()));
   loop.exec();
 
-  delete mngr;
+  // delete mngr;
 
   return 0;
 }
@@ -167,13 +168,15 @@ bool isPortAvailable(quint16 port) {
   return success;
 }
 
-void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp, qint16 port) {
+void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp,
+                           qint16 port) {
   pid_t pid = fork();
   if (pid == 0) {
-    execl(monitorExe.c_str(), "MonitoringClient", "--ipaddress",
-          MonServerIp.c_str(), "--port", port, "--nodeid", nodeId.c_str(),
-          NULL);
+    execl(monitorExe.c_str(), "ClientMonitoringService", "--ipaddress",
+          MonServerIp.c_str(), "--port", std::to_string(port).c_str(),
+          "--nodeid", nodeId.c_str(), (char *)NULL);
 
+    perror("execl failed");
     qCritical() << "Error starting monitoring client";
     exit(1);
   } else if (pid > 0) {
