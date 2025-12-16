@@ -32,7 +32,7 @@ signals:
   void serverDeleteReceived(std::string worldId);
   void updateConfigReceived(std::string worldId, std::string config);
 
-  void worldSyncReceived();
+  void worldSyncReceived(std::string worldId, std::string ipaddr);
   void errorOccurred(const QString &error);
 
 private slots:

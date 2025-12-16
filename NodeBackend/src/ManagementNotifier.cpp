@@ -72,6 +72,11 @@ void ManagementNotifier::onMessageReceived(const QByteArray &data) {
       } else if (message["type"] == "HELOResp") {
         activeId = message["data"]["active_id"];
         emit registered(activeId);
+      } else if (message["type"] == "Sync") {
+        std::string world_id = message["data"]["world_id"];
+        std::string ipaddr = message["data"]["ipaddr"];
+
+        emit worldSyncReceived(world_id, ipaddr);
       }
     }
   } catch (json::parse_error &e) {

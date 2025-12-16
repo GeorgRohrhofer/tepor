@@ -1,0 +1,49 @@
+﻿services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: manager
+      POSTGRES_PASSWORD: yourMum123
+      POSTGRES_DB: tepor_manage_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U manager -d tepor_manage_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  tepor-manage:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    depends_on:
+      - db
+    ports:
+      # host:container
+      - "4444:4444"   # API
+      - "5278:5278"   # TCP listener
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+
+      # DB connection overrides appsettings
+      ConnectionStrings__DefaultDbConnection: "Host=db;Port=5432;Database=tepor_manage_db;Username=manager;Password=yourMum123"
+
+      # KeyCloak Settings
+      JwtSettings__Authority: "https://tozm.net:8080/realms/tepor-auth"
+      JwtSettings__ValidIssuer: "https://tozm.net:8080/realms/tepor-auth"
+      JwtSettings__ValidAudiences: "kekClient,account"
+
+      # DiscordBot Settings
+      DiscordBotIp: "127.0.0.1:6969"
+      DiscordBotDefaultUserId: "419471850893213697"
+
+      # Monitoring Service Settings
+      MonitoringIp: "http://127.0.0.1:6943"
+
+
+volumes:
+  postgres-data:

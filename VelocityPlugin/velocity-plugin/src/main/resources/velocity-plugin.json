@@ -1,0 +1,8 @@
+{
+  "id": "meinplugin",
+  "name": "VelocityPlugin",
+  "version": "1.0.0",
+  "main": "tepor.velocityplugin.VelocityPlugin",
+  "authors": ["Georg Rohrhofer"]
+}
+
