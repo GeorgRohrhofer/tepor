@@ -1,19 +1,21 @@
 # syntax=docker/dockerfile:1.4
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 ARG TARGETARCH
-WORKDIR /source
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
 
 RUN dotnet nuget locals all --clear
 
 COPY . .
-RUN dotnet clean
-RUN dotnet restore -a $TARGETARCH
-RUN dotnet publish -a $TARGETARCH --no-restore -o /app
+RUN dotnet restore
+RUN dotnet publish -c Release -o /app/out --no-restore
 
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --link --from=build /app .
-USER $APP_UID
-ENTRYPOINT ["./ManagementBackend"]
+COPY --from=build /app/out .
+
+# Document internal ports
+EXPOSE 4444
+EXPOSE 5278
+
+ENTRYPOINT ["dotnet", "ManagementBackend.dll"]
