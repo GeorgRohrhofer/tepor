@@ -16,11 +16,13 @@ namespace ManagementBackend.Controllers
     [Authorize]
     public class UiApiController : ControllerBase
     {
+        private readonly DiscordMessageSender _discordSender;
         private readonly NMcomService _nmComService;
         private MyDbContext db;
 
-        public UiApiController(NMcomService nmComService, MyDbContext db)
+        public UiApiController(DiscordMessageSender discordSender, NMcomService nmComService, MyDbContext db)
         {
+            _discordSender = discordSender;
             _nmComService = nmComService;
             this.db = db;
         }
@@ -149,6 +151,23 @@ namespace ManagementBackend.Controllers
             db.Worlds.RemoveRange(db.Worlds.Where(w => w.Id == worldId));
 
             return Ok("World Deleted with ID: " + worldId);
+        }
+
+        [HttpGet("GetDiscordIDs")]
+        public ObjectResult GetDiscordIDs()
+        {
+            var discordIds = _discordSender.discordBotUserIds;
+            string json = JsonSerializer.Serialize(discordIds);
+
+            return Ok(json);
+        }
+
+        [HttpPost("SetDiscordIDs")]
+        public ObjectResult SetDiscordIDs([FromBody] List<string> discordIds)
+        {
+            _discordSender.discordBotUserIds.AddRange(discordIds);
+
+            return Ok("Ids Saved");
         }
 
         public class CreateWorldRequest
