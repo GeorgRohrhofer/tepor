@@ -43,9 +43,8 @@ namespace ManagementBackend.Services
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var socket = await _listener.AcceptSocketAsync();  // Accept an incoming client socket
-                    connectedSockets.Add(Guid.Parse("00000000-0000-0000-0000-000000000000"), socket);
-                    _ = HandleConnection(socket);
+                    var socket = await _listener.AcceptSocketAsync();
+                    _ = Task.Run(() => HandleConnection(socket));
                 }
             }
             catch (Exception ex)
@@ -54,7 +53,7 @@ namespace ManagementBackend.Services
             }
             finally
             {
-                _listener.Stop(); // Stop listening when loop finishes
+                _listener.Stop();
             }
         }
 
@@ -83,6 +82,13 @@ namespace ManagementBackend.Services
         private async Task ProcessMessage(NetworkStream stream)
         {
             var (type, json) = NMcomMessages.ReadMessage(stream);
+
+            if (type == null || json == null)
+            {
+                stream.Close();
+                stream.Socket.Close();
+                return;
+            }
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             options.Converters.Add(new FlexibleGuidConverter());
@@ -188,7 +194,7 @@ namespace ManagementBackend.Services
         public bool SendCreateServer(Guid worldId, string config, Guid nodeId)
         {
             NMPMessage<ServerCreateData> createMessage = new NMPMessage<ServerCreateData>(
-                "CreateServer",
+                "ServerCreate",
                 new ServerCreateData
                 {
                     world_id = worldId,
@@ -202,7 +208,7 @@ namespace ManagementBackend.Services
         public bool SendStartServer(Guid worldId, Guid nodeId)
         {
             NMPMessage<ServerStartData> startMessage = new NMPMessage<ServerStartData>(
-                "StartServer",
+                "ServerStart",
                 new ServerStartData
                 {
                     world_id = worldId
@@ -215,7 +221,7 @@ namespace ManagementBackend.Services
         public bool SendStopServer(Guid worldId, Guid nodeId)
         {
             NMPMessage<ServerStopData> stopMessage = new NMPMessage<ServerStopData>(
-                "StopServer",
+                "ServerStop",
                 new ServerStopData
                 {
                     world_id = worldId
@@ -228,7 +234,7 @@ namespace ManagementBackend.Services
         public bool SendRestartServer(Guid worldId, Guid nodeId)
         {
             NMPMessage<ServerRestartData> restartMessage = new NMPMessage<ServerRestartData>(
-                "RestartServer",
+                "ServerRestart",
                 new ServerRestartData
                 {
                     world_id = worldId
@@ -241,7 +247,7 @@ namespace ManagementBackend.Services
         public bool SendDeleteServer(Guid worldId, Guid nodeId)
         {
             NMPMessage<ServerDeleteData> deleteMessage = new NMPMessage<ServerDeleteData>(
-                "DeleteServer",
+                "ServerDelete",
                 new ServerDeleteData
                 {
                     world_id = worldId
