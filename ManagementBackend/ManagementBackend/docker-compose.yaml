@@ -30,7 +30,7 @@
       ASPNETCORE_ENVIRONMENT: "Production"
 
       # DB connection overrides appsettings
-      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=tepor_manage_db;Username=manager;Password=yourMum123"
+      ConnectionStrings__DefaultDbConnection: "Host=db;Port=5432;Database=tepor_manage_db;Username=manager;Password=yourMum123"
 
       # KeyCloak Settings
       JwtSettings__Authority: "https://tozm.net:8080/realms/tepor-auth"
