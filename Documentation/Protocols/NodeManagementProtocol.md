@@ -115,8 +115,21 @@ Each message uses the following structure:
     "world_id" : "string"
   }
 }
+```
+
+## Sync
+
+``` json
+{
+  "type": "Sync",
+  "data": {
+    "ipaddr": "string",
+    "world_id" : "string"
+  }
+}
 
 ```
+
 ## quit
 
 ``` json
