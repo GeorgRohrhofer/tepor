@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../provider/servernode_provider.dart';
-import '../provider/user_provider.dart';
+import '../viewmodels/servernode_list_viewmodel.dart';
+import 'servernode_world_list_page.dart';
 
 class ServerNodeListPage extends StatefulWidget {
   const ServerNodeListPage({super.key});
@@ -17,19 +17,18 @@ class _ServerNodeListPageState extends State<ServerNodeListPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isInit) {
-      Provider.of<ServerNodeProvider>(context, listen: false).loadServerNodes();
+      final vm = Provider.of<ServerNodeListViewModel>(context, listen: false);
+      vm.fetchServernodes();
       _isInit = false;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final serverNodeProvider = context.watch<ServerNodeProvider>();
-    final userProvider = context.watch<UserProvider>();
-
+    final vm = context.watch<ServerNodeListViewModel>();
     final colors = Theme.of(context).colorScheme;
 
-    if (serverNodeProvider.isLoading) {
+    if (vm.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -37,33 +36,16 @@ class _ServerNodeListPageState extends State<ServerNodeListPage> {
       appBar: AppBar(
         backgroundColor: colors.surface,
         toolbarHeight: 70,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Welcome ${userProvider.username}!",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: colors.onSurface, 
-              ),
-            ),
-            Text(
-              "Role: ${userProvider.role}",
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-          ],
+        title: const Text(
+          "ServerNodes",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.only(top: 20, left: 50, right: 50),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child:Container(
+          child: Container(
             decoration: BoxDecoration(
               border: Border.all(color: colors.outlineVariant),
               borderRadius: BorderRadius.circular(8),
@@ -84,9 +66,8 @@ class _ServerNodeListPageState extends State<ServerNodeListPage> {
                 DataColumn(label: Text("Disk Usage")),
                 DataColumn(label: Text("Action")),
               ],
-              rows: serverNodeProvider.servernodes.map((node) {
+              rows: vm.servernodes.map((node) {
                 return DataRow(
-                  color: WidgetStatePropertyAll(colors.surface), // optional row color
                   cells: [
                     DataCell(Text(node.id)),
                     DataCell(Text(node.cpu)),
@@ -95,7 +76,13 @@ class _ServerNodeListPageState extends State<ServerNodeListPage> {
                     DataCell(Text(node.disk)),
                     DataCell(
                       ElevatedButton(
-                        onPressed: () => debugPrint("V pressed for ${node.id}"),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ServerNodeWorldListPage(nodeId: node.id),
+                            ),
+                          );
+                        },
                         child: const Text("V"),
                       ),
                     ),
@@ -103,7 +90,7 @@ class _ServerNodeListPageState extends State<ServerNodeListPage> {
                 );
               }).toList(),
             ),
-          )
+          ),
         ),
       ),
     );

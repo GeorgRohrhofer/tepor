@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../provider/user_provider.dart';
 import '../viewmodels/world_list_viewmodel.dart';
+import '../provider/user_provider.dart';
 import '../widgets/overlays/create_world_overlay.dart';
-import '../widgets/overlays/edit_world_overlay.dart';
 import '../widgets/overlays/delete_world_overlay.dart';
 
 class WorldListPage extends StatelessWidget {
@@ -16,6 +15,13 @@ class WorldListPage extends StatelessWidget {
     final user = context.watch<UserProvider>();
     final colors = Theme.of(context).colorScheme;
 
+    // Load once after first build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!vm.isLoading && vm.worlds.isEmpty) {
+        vm.loadWorlds();
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: colors.surface,
@@ -24,7 +30,7 @@ class WorldListPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Welcome ${user.username}!",
+              'Welcome ${user.username}!',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -32,7 +38,7 @@ class WorldListPage extends StatelessWidget {
               ),
             ),
             Text(
-              "Role: ${user.role}",
+              'Role: ${user.role}',
               style: TextStyle(
                 fontSize: 14,
                 color: colors.onSurfaceVariant,
@@ -49,116 +55,135 @@ class WorldListPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ─────────── ACTION BAR ───────────
                 Row(
                   children: [
                     FilledButton(
-                      onPressed: () => vm.showOverlay(WorldOverlay.create),
-                      child: const Text("Create New World"),
+                      onPressed: () =>
+                          vm.showOverlay(WorldOverlay.create),
+                      child: const Text('Create New World'),
                     ),
                   ],
                 ),
 
                 const SizedBox(height: 20),
 
+                // ─────────── CONTENT ───────────
                 Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: colors.outlineVariant,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: DataTable(
-                          headingRowColor: WidgetStatePropertyAll(
-                            colors.surfaceContainerHigh,
-                          ),
-                          headingTextStyle: TextStyle(
-                            color: colors.onSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          dataTextStyle: TextStyle(
-                            color: colors.onSurface,
-                          ),
-                          columns: const [
-                            DataColumn(label: Text('ID')),
-                            DataColumn(label: Text('World Name')),
-                            DataColumn(label: Text('Creator')),
-                            DataColumn(label: Text('WorldSeed')),
-                            DataColumn(label: Text('Actions')),
-                          ],
-                          rows: vm.worlds.map((world) {
-                            return DataRow(
-                              cells: [
-                                DataCell(SizedBox(width: 250, child: Text(world.id))),
-                                DataCell(SizedBox(width: 200, child: Text(world.worldname))),
-                                DataCell(SizedBox(width: 120, child: Text(world.creatorname))),
-                                DataCell(SizedBox(width: 120, child: Text(world.worldSeed))),
-                                DataCell(
-                                  SizedBox(
-                                    width: 150,
-                                    child: Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.edit, color: colors.primary),
-                                          onPressed: () => vm.showOverlay(WorldOverlay.edit, world),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.delete, color: colors.error),
-                                          onPressed: () => vm.showOverlay(WorldOverlay.delete, world),
-                                        ),
-                                      ],
+                  child: vm.isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      : vm.worlds.isEmpty
+                          ? const Center(
+                              child: Text('No worlds available'),
+                            )
+                          : SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: colors.outlineVariant,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.vertical,
+                                  child: DataTable(
+                                    headingRowColor:
+                                        WidgetStatePropertyAll(
+                                      colors.surfaceContainerHigh,
                                     ),
+                                    columns: const [
+                                      DataColumn(label: Text('ID')),
+                                      DataColumn(label: Text('World Name')),
+                                      DataColumn(label: Text('Creator')),
+                                      DataColumn(label: Text('Seed')),
+                                      DataColumn(label: Text('Actions')),
+                                    ],
+                                    rows: vm.worlds.map((world) {
+                                      return DataRow(
+                                        cells: [
+                                          DataCell(
+                                            SizedBox(
+                                              width: 250,
+                                              child: Text(world.id),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            SizedBox(
+                                              width: 200,
+                                              child:
+                                                  Text(world.worldname),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            SizedBox(
+                                              width: 120,
+                                              child: Text(
+                                                  world.creatorname),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            SizedBox(
+                                              width: 120,
+                                              child:
+                                                  Text(world.worldSeed),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            SizedBox(
+                                              width: 120,
+                                              child: IconButton(
+                                                icon: Icon(
+                                                  Icons.delete,
+                                                  color: colors.error,
+                                                ),
+                                                onPressed: () => vm
+                                                    .showOverlay(
+                                                  WorldOverlay.delete,
+                                                  world,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                  ),
+                              ),
+                            ),
                 ),
               ],
             ),
           ),
 
+          // ─────────── CREATE OVERLAY ───────────
           if (vm.activeOverlay == WorldOverlay.create)
             CreateWorldOverlay(
               onDiscard: vm.closeOverlay,
-              onCreate: (name, seed, mode) {
-                vm.createWorld(
+              onCreate: (name, seed, mode) async {
+                await vm.createWorld(
                   worldname: name,
                   worldMode: mode,
                   worldSeed: seed,
-                  context: context,
                 );
                 vm.closeOverlay();
               },
             ),
 
-          if (vm.activeOverlay == WorldOverlay.edit && vm.selectedWorld != null)
-            EditWorldOverlay(
-              world: vm.selectedWorld!,
-              onCancel: vm.closeOverlay,
-              onSave: (id, name, creator) {
-                vm.updateWorld(id: id, worldname: name, creatorname: creator);
-                vm.closeOverlay();
-              },
-            ),
-
-          if (vm.activeOverlay == WorldOverlay.delete && vm.selectedWorld != null)
+          // ─────────── DELETE OVERLAY ───────────
+          if (vm.activeOverlay == WorldOverlay.delete &&
+              vm.selectedWorld != null)
             DeleteWorldOverlay(
               world: vm.selectedWorld!,
               onCancel: vm.closeOverlay,
-              onConfirm: (id) {
-                vm.deleteWorld(id);
+              onConfirm: (id) async {
+                await vm.deleteWorld(id);
                 vm.closeOverlay();
               },
-            )
+            ),
         ],
       ),
     );

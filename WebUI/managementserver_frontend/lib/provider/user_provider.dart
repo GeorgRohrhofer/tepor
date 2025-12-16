@@ -7,7 +7,7 @@ class UserProvider extends ChangeNotifier {
   User? get currentUser => _currentUser;
 
   String get username => _currentUser?.username ?? 'NoNAME';
-  String get role => _currentUser?.role ?? 'User';
+  String get role => _currentUser?.role ?? 'NoROLE';
 
   void setUser(User user) {
     _currentUser = user;
