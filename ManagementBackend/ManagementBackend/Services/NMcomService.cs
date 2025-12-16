@@ -74,8 +74,7 @@ namespace ManagementBackend.Services
             }
             finally
             {
-                stream.Close();
-                socket.Close();
+                HandleQuit(socket);
             }
         }
 
@@ -85,8 +84,7 @@ namespace ManagementBackend.Services
 
             if (type == null || json == null)
             {
-                stream.Close();
-                stream.Socket.Close();
+                HandleQuit(stream.Socket);
                 return;
             }
 
@@ -172,6 +170,9 @@ namespace ManagementBackend.Services
         private void HandleQuit(Socket socket)
         {
             socket.Close();
+
+            var idToRemove = connectedSockets.FirstOrDefault(x => x.Value == socket).Key;
+            connectedSockets.Remove(idToRemove);
         }
 
         private async Task<bool> SendMessage<T>(NMPMessage<T> messageObject, Guid nodeId)
