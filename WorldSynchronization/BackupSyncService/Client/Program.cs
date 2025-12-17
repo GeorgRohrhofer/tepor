@@ -187,7 +187,7 @@ class FileClient
             Console.WriteLine($"[{i + 1}/{fileCount}] receiving: {relativePath} ({fileSize} bytes)");
             
             // Receive file
-            using (FileStream fs = File.Create(fullPath))
+            using (FileStream fs = File.Create("/srv/tepor/worlds/" + fullPath))
             {
                 byte[] buffer = new byte[8192];
                 long totalReceived = 0;

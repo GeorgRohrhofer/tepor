@@ -1,17 +1,52 @@
 services:
-  management-backend:
-    depends_on:
-      - db
-      - flyway
-    build:
-      context: ../../ManagementBackend/ManagementBackend/
-      dockerfile: Dockerfile
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: manager
+      POSTGRES_PASSWORD: yourMum123
+      POSTGRES_DB: tepor_manage_db
     ports:
-      - 8000:8000
-  monitoring-server:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U manager -d tepor_manage_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  tepor-manage:
+    build:
+        context: ../../ManagementBackend/ManagementBackend
+        dockerfile: Dockerfile
     depends_on:
       - db
-      - flyway
+    ports:
+      # host:container
+      - "4444:4444"   # API
+      - "5278:5278"   # TCP listener
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+
+      # DB connection overrides appsettings
+      ConnectionStrings__DefaultDbConnection: "Host=db;Port=5432;Database=tepor_manage_db;Username=manager;Password=yourMum123"
+
+      # KeyCloak Settings
+      JwtSettings__Authority: "https://tozm.net:8080/realms/tepor-auth"
+      JwtSettings__ValidIssuer: "https://tozm.net:8080/realms/tepor-auth"
+      JwtSettings__ValidAudiences: "kekClient,account"
+
+      # DiscordBot Settings
+      DiscordBotIp: "discord-bot:6969"
+      DiscordBotDefaultUserId: "419471850893213697"
+
+      # Monitoring Service Settings
+      MonitoringIp: "http://monitoring-server:6943"
+
+
+
+  monitoring-server:
     build:
       context: ../../MonitoringService/Server/ServerMonitoringService/
       dockerfile: Dockerfile
@@ -27,26 +62,15 @@ services:
       - 6969:6969
   web-ui:
     depends_on:
-      - management-backend
+      - tepor-manage
+      - monitoring-server
+      - discord-bot
     build:
       context: ../../WebUI/
       dockerfile: Dockerfile
     ports:
       - 80:80
-  db:
-    image: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: pass
-  adminer:
-    image: adminer
-    restart: unless-stopped
-    ports:
-      - 8080:8080
-  flyway:
-    image: flyway/flyway
-    command: -url=jdbc:postgresql://db:5432/postgres -schemas=public -user=postgres -password=pass -connectRetries=60 migrate
-    volumes:
-      - ../../DatabaseFiles/ManagementDB:/flyway/sql
-    depends_on:
-      - db
+      - 443:443
+
+volumes:
+  postgres-data:

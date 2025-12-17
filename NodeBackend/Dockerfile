@@ -1,4 +1,4 @@
-FROM gcc:15
+FROM gcc:15 as cpp-build
 
 WORKDIR /app
 
@@ -23,7 +23,50 @@ RUN cd NodeBackend && mkdir -p build && cd build && cmake .. && cmake --build .
 RUN mkdir -p /flyway
 RUN touch /flyway/sqlite.db
 
+#--------------------------------------------------------------
+# Building Monitoring and WorldSync
+#--------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS csharp-build
+WORKDIR /build/csharp
+COPY ../MonitoringService/Client/ClientMonitoringService/ ./MonService
+WORKDIR /build/csharp/MonService
+RUN dotnet publish \
+    -c Release \
+    -r linux-musl-x64 \
+    --self-contained true \
+    /p:PublishSingleFile=true \
+    -o /out/BackupSyncService
+
+WORKDIR /build/csharp
+COPY ../WorldSynchronization/BackupSyncService/Client/ ./WorldSync
+WORKDIR /build/csharp/WorldSync
+RUN dotnet publish \
+    -c Release \
+    -r linux-musl-x64 \
+    --self-contained true \
+    /p:PublishSingleFile=true \
+    -o /out/BackupSyncService
+
 WORKDIR /app/NodeBackend/build
 
 ENTRYPOINT ["/app/NodeBackend/build/NodeBackend"]
 
+#--------------------------------------------------------------
+# Runtime
+#--------------------------------------------------------------
+
+FROM alpine:3.20
+RUN apk add --no-cache libstdc++ ca-certificates
+
+WORKDIR /app
+
+# C++ Binary
+COPY --from=cpp-build /app/NodeBackend/build/NodeBackend ./NodeBackend
+
+# C# Binary (single file executable)
+COPY --from=csharp-build /out/* ./ClientMonitoringService
+COPY --from=csharp-build /out/* ./Client
+
+RUN chmod +x ./cpp-app ./csharp-app
+
+CMD ["./NodeBackend"]
