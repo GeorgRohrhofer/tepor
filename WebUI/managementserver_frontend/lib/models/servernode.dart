@@ -3,25 +3,29 @@ import 'world.dart';
 
 part 'servernode.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class ServerNode {
+  @JsonKey(name: 'Id')
   final String id;
-  final String cpu;
-  final String ram;
-  final String network;
-  final String disk;
-  List<World> worlds;
+
+  @JsonKey(name: 'Cpu')
+  final int cpu;
+
+  @JsonKey(name: 'Ram')
+  final int ram;
+
+  /// Backend currently does NOT send this → must be optional
+  final List<World> worlds;
 
   ServerNode({
     required this.id,
     required this.cpu,
     required this.ram,
-    required this.network,
-    required this.disk,
-    required this.worlds,
-  });
+    List<World>? worlds,
+  }) : worlds = worlds ?? const [];
 
-  factory ServerNode.fromJson(Map<String, dynamic> json) => _$ServerNodeFromJson(json);
-  
+  factory ServerNode.fromJson(Map<String, dynamic> json) =>
+      _$ServerNodeFromJson(json);
+
   Map<String, dynamic> toJson() => _$ServerNodeToJson(this);
 }

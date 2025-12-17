@@ -5,9 +5,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme.dart';
 import 'layout/main_layout.dart';
 
-import 'api/API_UIDATA.dart';
-import 'viewmodels/world_list_viewmodel.dart';
-import 'viewmodels/servernode_list_viewmodel.dart';
+import 'API/API_UIData.dart';
+import 'ViewModels/world_list_viewmodel.dart';
+import 'ViewModels/servernode_list_viewmodel.dart';
+import 'ViewModels/settings_viewmodel.dart';
 
 import 'provider/user_provider.dart';
 
@@ -17,42 +18,38 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
-  // ───────── Providers ─────────
   final userProvider = UserProvider();
-
-  // Mock user (replace later with auth)
   userProvider.setUser(
-    User(
-      username: 'MaxMustermann',
-      role: 'Admin',
-    ),
+    User(username: 'MaxMustermann', role: 'Admin'),
   );
 
-  // API service (singleton-style)
   final uiApiService = UiApiService();
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: userProvider),
-
-        // ServerNodeListViewModel Provider
-        ChangeNotifierProvider(
-          create: (_) => ServerNodeListViewModel(apiService: uiApiService),
-        ),
-
-        // WorldListViewModel Provider
-        ChangeNotifierProvider(
-          create: (_) => WorldListViewModel(
-            apiService: uiApiService,
-            userProvider: userProvider,
+    Provider<UiApiService>.value(
+      value: uiApiService,
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: userProvider),
+          ChangeNotifierProvider(
+            create: (_) => ServerNodeListViewModel(apiService: uiApiService),
           ),
-        ),
-      ],
-      child: const MyApp(),
+          ChangeNotifierProvider(
+            create: (_) => WorldListViewModel(
+              apiService: uiApiService,
+              userProvider: userProvider,
+            ),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => DiscordSettingsViewModel(apiService: uiApiService),
+          )
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

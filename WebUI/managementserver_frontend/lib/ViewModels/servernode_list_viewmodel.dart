@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../api/API_UIDATA.dart';
+import '../API/API_UIData.dart';
 import '../models/servernode.dart';
 
 class ServerNodeListViewModel extends ChangeNotifier {
@@ -7,27 +7,22 @@ class ServerNodeListViewModel extends ChangeNotifier {
 
   ServerNodeListViewModel({required this.apiService});
 
-  List<ServerNode> _servernodes = [];
-  List<ServerNode> get servernodes => _servernodes;
-
+  List<ServerNode> servernodes = [];
   bool isLoading = false;
+  bool _loadedOnce = false;
 
-  /// Holt die ServerNodes von der API über UiApiService
-  Future<void> fetchServernodes() async {
+  Future<void> loadServernodes() async {
+    if (_loadedOnce || isLoading) return;
+
+    _loadedOnce = true;
     isLoading = true;
     notifyListeners();
 
     try {
-      // Stelle sicher, dass der Token vorhanden ist
-      if (apiService.token == null) {
-        final authenticated = await apiService.authenticate();
-        if (!authenticated) throw Exception("Authentication failed");
-      }
-
-      _servernodes = await apiService.getNodes();
+      servernodes = await apiService.getNodes();
     } catch (e) {
-      _servernodes = [];
       debugPrint('Error fetching server nodes: $e');
+      servernodes = [];
     }
 
     isLoading = false;

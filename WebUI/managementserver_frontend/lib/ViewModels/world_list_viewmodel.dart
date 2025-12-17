@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/world.dart';
-import '../api/API_UIDATA.dart';
+import '../API/API_UIData.dart';
 import '../provider/user_provider.dart';
 
 enum WorldOverlay { none, create, edit, delete }
@@ -34,10 +34,21 @@ class WorldListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Load worlds for current user
+  /// Lade Welten für den aktuellen User
   Future<void> loadWorlds() async {
     isLoading = true;
     notifyListeners();
+
+    // API-Aufruf erst, wenn Token vorhanden
+    if (apiService.token == null) {
+      final authSuccess = await apiService.authenticate();
+      if (!authSuccess) {
+        debugPrint("Authentication failed!");
+        isLoading = false;
+        notifyListeners();
+        return;
+      }
+    }
 
     _worlds = await apiService.getWorldsByCurrentUser();
 
@@ -45,7 +56,7 @@ class WorldListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Create world
+  /// Erstelle neue Welt
   Future<bool> createWorld({
     required String worldname,
     required String worldMode,
@@ -58,7 +69,7 @@ class WorldListViewModel extends ChangeNotifier {
     return success;
   }
 
-  // Update world locally (backend API not implemented yet)
+  /// Update Welt lokal (Backend API noch nicht implementiert)
   void updateWorld({
     required String id,
     required String worldname,
@@ -72,7 +83,7 @@ class WorldListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Delete world
+  /// Lösche Welt
   Future<bool> deleteWorld(String worldId) async {
     final success = await apiService.deleteWorld(worldId);
     if (success) {

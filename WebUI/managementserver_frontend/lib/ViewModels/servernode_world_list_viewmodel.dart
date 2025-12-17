@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/world.dart';
-import '../api/API_UIDATA.dart';
-
-enum WorldOverlay { none, create, edit, delete }
+import '../API/API_UIData.dart';
 
 class ServerWorldListViewModel extends ChangeNotifier {
   final UiApiService apiService;
@@ -14,44 +12,24 @@ class ServerWorldListViewModel extends ChangeNotifier {
   List<World> _worlds = [];
   List<World> get worlds => _worlds;
 
-  WorldOverlay activeOverlay = WorldOverlay.none;
-  World? selectedWorld;
-
   bool isLoading = false;
 
-  // -------------------------------
-  // Overlay handling
-  // -------------------------------
-
-  void showOverlay(WorldOverlay overlay, [World? world]) {
-    activeOverlay = overlay;
-    selectedWorld = world;
-    notifyListeners();
-  }
-
-  void closeOverlay() {
-    activeOverlay = WorldOverlay.none;
-    selectedWorld = null;
-    notifyListeners();
-  }
-
-  // -------------------------------
-  // API – Worlds by Node
-  // -------------------------------
-
   Future<void> loadWorldsByNode(String nodeId) async {
+    if (isLoading) return;
+
     isLoading = true;
     notifyListeners();
 
-    _worlds = await apiService.getWorldsByNode(nodeId);
+    try {
+      _worlds = await apiService.getWorldsByNode(nodeId);
+    } catch (e) {
+      debugPrint('Failed to load worlds for node $nodeId: $e');
+      _worlds = [];
+    }
 
     isLoading = false;
     notifyListeners();
   }
-
-  // -------------------------------
-  // Delete World
-  // -------------------------------
 
   Future<bool> deleteWorld(String worldId) async {
     final success = await apiService.deleteWorld(worldId);
