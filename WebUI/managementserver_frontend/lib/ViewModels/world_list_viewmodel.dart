@@ -39,17 +39,6 @@ class WorldListViewModel extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
-    // API-Aufruf erst, wenn Token vorhanden
-    if (apiService.token == null) {
-      final authSuccess = await apiService.authenticate();
-      if (!authSuccess) {
-        debugPrint("Authentication failed!");
-        isLoading = false;
-        notifyListeners();
-        return;
-      }
-    }
-
     _worlds = await apiService.getWorldsByCurrentUser();
 
     isLoading = false;

@@ -6,64 +6,68 @@ import 'package:http/http.dart' as http;
 import '../models/world.dart';
 import '../models/servernode.dart';
 import '../models/user.dart';
+import '../Keycloak/keycloak_web_service.dart';
 
 class UiApiService {
-  final String baseUrl;
-  final String authUrl;
-  final String clientId;
-  final String clientUsername;
-  final String clientPassword;
-
-  String? _token;
-
-  UiApiService()
-      : baseUrl = dotenv.env['API_URL'] ?? '',
-        authUrl = dotenv.env['AUTH_URL'] ?? '',
-        clientId = dotenv.env['CLIENT_ID'] ?? '',
-        clientUsername = dotenv.env['CLIENT_USERNAME'] ?? '',
-        clientPassword = dotenv.env['CLIENT_PASSWORD'] ?? '' {
-    if (baseUrl.isEmpty || authUrl.isEmpty) {
-      throw Exception("API_URL oder AUTH_URL sind nicht gesetzt in .env!");
-    }
-    if (clientId.isEmpty || clientUsername.isEmpty || clientPassword.isEmpty) {
-      throw Exception("CLIENT_ID, CLIENT_USERNAME oder CLIENT_PASSWORD fehlen in .env!");
-    }
+  UiApiService._privateConstructor() 
+    : baseUrl = dotenv.env['API_URL'] ?? '';
+  
+  static final UiApiService _instance = UiApiService._privateConstructor();
+  
+  factory UiApiService() 
+  {
+    return _instance;
   }
+
+  final String baseUrl;
+
+  static String? _token;
+
+  // UiApiService()
+  //     : baseUrl = dotenv.env['API_URL'] ?? ''
+  // {
+  //   if (baseUrl.isEmpty) {
+  //     throw Exception("API_URL sind nicht gesetzt in .env!");
+  //   }
+  // }
 
   String? get token => _token;
 
+  void setToken(String token) => _token = token;
+
   /// Authenticate via Keycloak and store Bearer token
-  Future<bool> authenticate() async {
-    debugPrint("Authenticating with $authUrl ...");
-    final body = {
-      'grant_type': 'password',
-      'client_id': clientId,
-      'username': clientUsername,
-      'password': clientPassword,
-    };
-
-    final response = await http.post(
-      Uri.parse(authUrl),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: body,
-    );
-
-    debugPrint('Auth Response: ${response.statusCode} ${response.body}');
-
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
-      _token = json['access_token'];
-      debugPrint('Authenticated successfully. Token: $_token');
-      return true;
-    }
-
-    debugPrint('Authentication failed!');
-    return false;
-  }
+  // Future<bool> authenticate() async {
+  //   debugPrint("Authenticating with $authUrl ...");
+  //   final body = {
+  //     'grant_type': 'password',
+  //     'client_id': clientId,
+  //     'username': clientUsername,
+  //     'password': clientPassword,
+  //   };
+  //
+  //   final response = await http.post(
+  //     Uri.parse(authUrl),
+  //     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+  //     body: body,
+  //   );
+  //
+  //   debugPrint('Auth Response: ${response.statusCode} ${response.body}');
+  //
+  //   if (response.statusCode == 200) {
+  //     final json = jsonDecode(response.body);
+  //     _token = json['access_token'];
+  //     debugPrint('Authenticated successfully. Token: $_token');
+  //     return true;
+  //   }
+  //
+  //   debugPrint('Authentication failed!');
+  //   return false;
+  // }
 
   Map<String, String> _authHeaders({Map<String, String>? extraHeaders}) {
     if (_token == null) {
-      throw Exception("Token ist null. Bitte authenticate() vorher aufrufen!");
+      _token = KeycloakWebService().getAccessToken();
+      // throw Exception("Token ist null. Bitte authenticate() vorher aufrufen!");
     }
     final headers = {'Authorization': 'Bearer $_token'};
     if (extraHeaders != null) headers.addAll(extraHeaders);

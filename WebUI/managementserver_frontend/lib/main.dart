@@ -14,6 +14,7 @@ import 'provider/user_provider.dart';
 
 import 'models/user.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -24,32 +25,30 @@ void main() async {
   );
 
   final uiApiService = UiApiService();
-
   runApp(
-    Provider<UiApiService>.value(
-      value: uiApiService,
-      child: MultiProvider(
-        providers: [
+      Provider<UiApiService>.value(
+        value: uiApiService,
+        child: MultiProvider(
+          providers: [
           ChangeNotifierProvider.value(value: userProvider),
           ChangeNotifierProvider(
             create: (_) => ServerNodeListViewModel(apiService: uiApiService),
-          ),
+            ),
           ChangeNotifierProvider(
             create: (_) => WorldListViewModel(
               apiService: uiApiService,
               userProvider: userProvider,
+              ),
             ),
-          ),
           ChangeNotifierProvider(
             create: (_) => DiscordSettingsViewModel(apiService: uiApiService),
-          )
-        ],
-        child: const MyApp(),
-      ),
-    ),
-  );
+            )
+          ],
+          child: const MyApp(),
+          ),
+        ),
+        );
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

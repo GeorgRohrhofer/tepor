@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../API/API_UIData.dart';
 import '../widgets/sidebar.dart';
-import '../pages/world_list_page.dart';
-import '../pages/servernode_list_page.dart';
-import '../pages/settings_page.dart';
+import '../Pages/world_list_page.dart';
+import '../Pages/servernode_list_page.dart';
+import '../Pages/settings_page.dart';
+
+import '../Keycloak/keycloak_web_service.dart';
+import 'dart:html' as html;
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -15,6 +19,38 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
   int selectedIndex = 0;
+
+  final KeycloakWebService _keycloak = KeycloakWebService();
+  bool _isAuthenticated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    final uri = Uri.parse(html.window.location.href);
+    if (uri.queryParameters.containsKey('code')) {
+      try {
+        final tokens = await _keycloak.handleCallback();
+        if (tokens != null) {
+          print('Login erfolgreich!');
+        }
+      } catch (e) {
+        print('Callback Fehler: $e');
+      }
+    }
+
+    setState(() {
+      _isAuthenticated = _keycloak.isAuthenticated();
+    });
+
+    if (!_isAuthenticated) {
+      _keycloak.login();
+      context.watch<UiApiService>().setToken(_keycloak.getAccessToken() ?? "");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +79,7 @@ class _MainLayoutState extends State<MainLayout> {
               onPressed: () {
                 Navigator.pop(context);
                 // Logout logic
+                _keycloak.logout();
               },
               child: const Text('Logout'),
             ),
