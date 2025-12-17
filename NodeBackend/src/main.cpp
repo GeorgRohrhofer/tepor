@@ -30,6 +30,8 @@ bool isPortAvailable(quint16 port);
 void signalHandlerWrapper(int signal);
 void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp,
                            qint16 port);
+void startBackupWorldSyncClient(string worldSyncExe, string targetIp,
+                                string worldPath);
 
 int main(int argc, char *argv[]) {
   //----------------------------------------------------------------------------
@@ -57,6 +59,10 @@ int main(int argc, char *argv[]) {
   quint16 monitorPort = 6942;
   cliApp.add_option("-m, --monitor-port", monitorPort,
                     "Port to connect the monitoring client to");
+
+  string worldSyncExe = "/srv/tepor/WorldSyncClient";
+  cliApp.add_option("-w, --worldsync-exe", worldSyncExe,
+                    "Path to the world sync client executable");
 
   CLI11_PARSE(cliApp, argc, argv);
 
@@ -158,6 +164,12 @@ int main(int argc, char *argv[]) {
     startMonitoringClient(monitorExe, activeId, monitorIp, monitorPort);
   });
 
+  QObject::connect(mngr, &ManagementNotifier::worldSyncReceived,
+                   [&](string worldId, string ipAddress) {
+                     startBackupWorldSyncClient(worldSyncExe, ipAddress,
+                                                "/srv/tepor/worlds/" + worldId);
+                   });
+
   g_signalHandler = [&](int signal) {
     if (signal == SIGINT) {
       qDebug() << "\nCtrl+C detected...";
@@ -166,7 +178,6 @@ int main(int argc, char *argv[]) {
     }
   };
 
-  // Signal-Handler registrieren
   std::signal(SIGINT, signalHandlerWrapper);
 
   mngr->sendRegister(
@@ -204,6 +215,23 @@ void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp,
     exit(1);
   } else if (pid > 0) {
     qInfo() << "Monitoring client started with PID: " << pid;
+  } else {
+    qCritical() << "Fork failed";
+  }
+}
+
+void startBackupWorldSyncClient(string worldSyncExe, string targetIp,
+                                string worldPath) {
+  pid_t pid = fork();
+  if (pid == 0) {
+    execl(worldSyncExe.c_str(), "Client", targetIp.c_str(), worldPath.c_str(),
+          (char *)NULL);
+
+    perror("execl failed");
+    qCritical() << "Error starting World sync client";
+    exit(1);
+  } else if (pid > 0) {
+    qInfo() << "World sync client started with PID: " << pid;
   } else {
     qCritical() << "Fork failed";
   }
