@@ -37,7 +37,9 @@ namespace ManagementBackend.Services
             // Read Header
             byte[] headerBuffer = new byte[HeaderSize];
 
-            ReadFully(stream, headerBuffer, HeaderSize);
+            var totalbytesRead = ReadFully(stream, headerBuffer, HeaderSize);
+            if (totalbytesRead == 0)
+                return (null, null);
 
             if (headerBuffer[0] != ProtocolVersion)
                 return ("error_version_mismatch", string.Empty);

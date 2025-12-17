@@ -13,6 +13,8 @@ namespace ManagementBackend
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.WebHost.UseUrls("http://0.0.0.0:3333", "https://0.0.0.0:4444");
+
             // Add DbContext
             builder.Services.AddDbContext<MyDbContext>(options =>
             {
