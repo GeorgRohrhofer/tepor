@@ -149,6 +149,13 @@ namespace ManagementBackend.Services
         public required string message { get; set; }
     }
 
+    public class SyncData
+    {
+        public required string ipaddr { get; set; }
+
+        public required string world_id { get; set; }
+    }
+
     // Client -> Server
     public class HELOReqData
     {

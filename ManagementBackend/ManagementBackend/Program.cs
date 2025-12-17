@@ -4,6 +4,7 @@ using ManagementBackend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using BungeeCordIntegration;
 
 namespace ManagementBackend
 {
@@ -85,6 +86,13 @@ namespace ManagementBackend
 
                 return new MonitoringComService(monitorIp, scopeFactory);
             });
+
+            // Velocity Connection
+            var velocityIp = builder.Configuration.GetSection("VelocityIp").Get<string>();
+            if (velocityIp == null)
+                throw new Exception("VelocityIp section is missing configuration.");
+            var velocityPort = builder.Configuration.GetSection("VelocityPort").Get<int>();
+            builder.Services.AddSingleton(new Velocity(velocityIp, velocityPort));
 
             // Tcp Socket
             builder.Services.AddSingleton<NMcomService>();

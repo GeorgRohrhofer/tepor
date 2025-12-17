@@ -1,8 +1,11 @@
 ﻿using ManagementBackend.DataModels;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Hosting;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
+using static NpgsqlTypes.NpgsqlTsQuery;
 
 namespace ManagementBackend.Services
 {
@@ -13,9 +16,11 @@ namespace ManagementBackend.Services
         private Dictionary<Guid, Socket> connectedSockets;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly DiscordMessageSender _discordSender;
+        private readonly MonitoringComService _monitoringComService;
 
-        public NMcomService(IServiceScopeFactory scopeFactory, DiscordMessageSender discordSender)
+        public NMcomService(IServiceScopeFactory scopeFactory, DiscordMessageSender discordSender, MonitoringComService monitoringComService)
         {
+            _monitoringComService = monitoringComService;
             _scopeFactory = scopeFactory;
             _discordSender = discordSender;
             _listener = new TcpListener(IPAddress.Any, TcpPort);
@@ -99,7 +104,7 @@ namespace ManagementBackend.Services
                     break;
                 case "WorldSaved":
                     var worldSaved = JsonSerializer.Deserialize<NMPMessage<WorldSavedData>>(json, options);
-                    _ = HandleWorldSaved(worldSaved);
+                    _ = HandleWorldSaved(worldSaved, stream.Socket);
                     break;
                 case "ERROR":
                     var error = JsonSerializer.Deserialize<NMPMessage<ErrorData>>(json, options);
@@ -142,7 +147,7 @@ namespace ManagementBackend.Services
             await SendMessage(messageObject, heloReq.data.previous_id);
         }
 
-        private async Task HandleWorldSaved(NMPMessage<WorldSavedData> ?worldSaved)
+        private async Task HandleWorldSaved(NMPMessage<WorldSavedData> ?worldSaved, Socket socket)
         {
             if (worldSaved == null || worldSaved.data == null)
                 return;
@@ -156,6 +161,43 @@ namespace ManagementBackend.Services
                 return;
 
             world.Hash = worldSaved.data.hash;
+
+            if (socket.RemoteEndPoint is IPEndPoint endPoint)
+            {
+                var worldStore = db.WorldStores.Where(ws => ws.WorldId == world.Id).FirstOrDefault();
+                if (worldStore == null)
+                    throw new Exception("WorldStore does not exist for this world.");
+
+                var nodeId = Guid.Empty;
+                var backUpNodeIds = worldStore.BackUpNodeIds;
+                if (backUpNodeIds.Count > 0)
+                {
+                    var activeNodes = _monitoringComService.GetActiveNodes();
+                    
+                    foreach(var backupNodeId in backUpNodeIds)
+                    {
+                        if (activeNodes.Contains(backupNodeId))
+                        {
+                            nodeId = backupNodeId;
+                            continue;
+                        }
+                    }
+
+                    if (nodeId == Guid.Empty)
+                    {
+                        nodeId = _monitoringComService.GetLeastUsedActiveNodeId();
+                    }
+                }
+                else
+                {
+                    nodeId = _monitoringComService.GetLeastUsedActiveNodeId();
+                }
+
+                var ipNodeSelf = endPoint.Address.ToString();
+
+                SendSync(ipNodeSelf, world.Id, nodeId);
+            }
+
             await db.SaveChangesAsync();
         }
 
@@ -294,6 +336,32 @@ namespace ManagementBackend.Services
             );
 
             return SendMessage<ErrorData>(errorMessageObject, nodeId).Result;
+        }
+
+        public string? GetIpByNodeId(Guid nodeId)
+        {
+            var socket = connectedSockets[nodeId];
+
+            if (socket.RemoteEndPoint is IPEndPoint endPoint)
+            {
+                return endPoint.Address.ToString();
+            }
+
+            return null;
+        }
+
+        private bool SendSync(string ipAddr, Guid worldId, Guid nodeId)
+        {
+            NMPMessage<SyncData> syncObject = new NMPMessage<SyncData>(
+                "Sync",
+                new SyncData
+                {
+                    ipaddr = ipAddr,
+                    world_id = worldId.ToString(),
+                }
+            );
+
+            return SendMessage<SyncData>(syncObject, nodeId).Result;
         }
     }
 }
