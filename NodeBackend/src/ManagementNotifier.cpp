@@ -3,6 +3,8 @@
 #include <nlohmann/json.hpp>
 #include <qtmetamacros.h>
 
+#include <iostream>
+
 using json = nlohmann::json;
 
 ManagementNotifier::ManagementNotifier(QObject *parent, QString host,
@@ -41,35 +43,35 @@ void ManagementNotifier::onMessageReceived(const QByteArray &data) {
   try {
     json message = json::parse(data);
     if (message.contains("type")) {
-      if (message["type"] == "ServerCreate") {
+      if (message["type"].get<std::string>() == "ServerCreate") {
         std::string world_id = message["data"]["world_id"];
         std::string config = message["data"]["config"];
 
         emit serverCreateReceived(world_id, config);
-      } else if (message["type"] == "ServerStart") {
+      } else if (message["type"].get<std::string>() == "ServerStart") {
         std::string world_id = message["data"]["world_id"];
 
         emit serverStartReceived(world_id);
-      } else if (message["type"] == "ServerStop") {
+      } else if (message["type"].get<std::string>() == "ServerStop") {
         std::string world_id = message["data"]["world_id"];
 
         emit serverStopReceived(world_id);
-      } else if (message["type"] == "ServerRestart") {
+      } else if (message["type"].get<std::string>() == "ServerRestart") {
         std::string world_id = message["data"]["world_id"];
 
         emit serverRestartReceived(world_id);
-      } else if (message["type"] == "ServerDelete") {
+      } else if (message["type"].get<std::string>() == "ServerDelete") {
         std::string world_id = message["data"]["world_id"];
 
         emit serverDeleteReceived(world_id);
-      } else if (message["type"] == "UpdateConfig") {
+      } else if (message["type"].get<std::string>() == "UpdateConfig") {
         std::string world_id = message["data"]["world_id"];
         std::string config = message["data"]["config"];
 
         emit updateConfigReceived(world_id, config);
-      } else if (message["type"] == "VERSION_ERROR") {
+      } else if (message["type"].get<std::string>() == "VERSION_ERROR") {
         emit errorOccurred("Version mismatch");
-      } else if (message["type"] == "HELOResp") {
+      } else if (message["type"].get<std::string>() == "HELOResp") {
         activeId = message["data"]["active_id"];
         emit registered(activeId);
       } else if (message["type"] == "Sync") {
@@ -100,6 +102,12 @@ void ManagementNotifier::sendWorldSaved(std::string worldName,
 void ManagementNotifier::sendRegister(QUuid uuid) {
   json message = {{"type", "HELOReq"},
                   {"data", {{"previous_id", uuid.toString().toStdString()}}}};
+
+  nm->sendMessage(QByteArray(message.dump()));
+}
+
+void ManagementNotifier::sendQuit() {
+  json message = {{"type", "QUIT"}};
 
   nm->sendMessage(QByteArray(message.dump()));
 }

@@ -3,10 +3,12 @@
 #include <QDebug>
 #include <QEventLoop>
 #include <QObject>
+#include <QShortcut>
 #include <QTcpServer>
 #include <QTimer>
 #include <QUuid>
 #include <cerrno>
+#include <csignal>
 #include <filesystem>
 #include <qlogging.h>
 #include <qmap.h>
@@ -22,9 +24,14 @@
 
 using namespace std;
 
+std::function<void(int)> g_signalHandler;
+
 bool isPortAvailable(quint16 port);
+void signalHandlerWrapper(int signal);
 void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp,
                            qint16 port);
+void startBackupWorldSyncClient(string worldSyncExe, string targetIp,
+                                string worldPath);
 
 int main(int argc, char *argv[]) {
   //----------------------------------------------------------------------------
@@ -52,6 +59,10 @@ int main(int argc, char *argv[]) {
   quint16 monitorPort = 6942;
   cliApp.add_option("-m, --monitor-port", monitorPort,
                     "Port to connect the monitoring client to");
+
+  string worldSyncExe = "/srv/tepor/WorldSyncClient";
+  cliApp.add_option("-w, --worldsync-exe", worldSyncExe,
+                    "Path to the world sync client executable");
 
   CLI11_PARSE(cliApp, argc, argv);
 
@@ -83,7 +94,7 @@ int main(int argc, char *argv[]) {
                    [&](std::string worldId, std::string config) {
                      filesystem::path worldPath =
                          filesystem::path("/srv/tepor/worlds") / worldId;
-
+                     qDebug() << "helo";
                      if (!filesystem::exists(worldPath)) {
                        filesystem::create_directories(worldPath);
                      }
@@ -98,6 +109,7 @@ int main(int argc, char *argv[]) {
                        }
                      }
 
+                     qDebug() << "helo";
                      instances.insert(worldId, new MinecraftInstance(
                                                    worldId, config,
                                                    worldPath.string(), port));
@@ -152,11 +164,27 @@ int main(int argc, char *argv[]) {
     startMonitoringClient(monitorExe, activeId, monitorIp, monitorPort);
   });
 
+  QObject::connect(mngr, &ManagementNotifier::worldSyncReceived,
+                   [&](string worldId, string ipAddress) {
+                     startBackupWorldSyncClient(worldSyncExe, ipAddress,
+                                                "/srv/tepor/worlds/" + worldId);
+                   });
+
+  g_signalHandler = [&](int signal) {
+    if (signal == SIGINT) {
+      qDebug() << "\nCtrl+C detected...";
+      mngr->sendQuit();
+      loop.quit();
+    }
+  };
+
+  std::signal(SIGINT, signalHandlerWrapper);
+
   mngr->sendRegister(
       QUuid(db->executeQuery("SELECT id FROM Node")[0]["id"].toString()));
   loop.exec();
 
-  // delete mngr;
+  delete mngr;
 
   return 0;
 }
@@ -166,6 +194,12 @@ bool isPortAvailable(quint16 port) {
   bool success = server.listen(QHostAddress::Any, port);
   server.close();
   return success;
+}
+
+void signalHandlerWrapper(int signal) {
+  if (g_signalHandler) {
+    g_signalHandler(signal);
+  }
 }
 
 void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp,
@@ -181,6 +215,23 @@ void startMonitoringClient(string monitorExe, string nodeId, string MonServerIp,
     exit(1);
   } else if (pid > 0) {
     qInfo() << "Monitoring client started with PID: " << pid;
+  } else {
+    qCritical() << "Fork failed";
+  }
+}
+
+void startBackupWorldSyncClient(string worldSyncExe, string targetIp,
+                                string worldPath) {
+  pid_t pid = fork();
+  if (pid == 0) {
+    execl(worldSyncExe.c_str(), "Client", targetIp.c_str(), worldPath.c_str(),
+          (char *)NULL);
+
+    perror("execl failed");
+    qCritical() << "Error starting World sync client";
+    exit(1);
+  } else if (pid > 0) {
+    qInfo() << "World sync client started with PID: " << pid;
   } else {
     qCritical() << "Fork failed";
   }
