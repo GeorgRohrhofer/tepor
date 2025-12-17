@@ -71,6 +71,8 @@ class UiApiService {
     }
     final headers = {'Authorization': 'Bearer $_token'};
     if (extraHeaders != null) headers.addAll(extraHeaders);
+
+    print(_token);
     return headers;
   }
 

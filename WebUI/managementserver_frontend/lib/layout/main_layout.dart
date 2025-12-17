@@ -36,6 +36,7 @@ class _MainLayoutState extends State<MainLayout> {
         final tokens = await _keycloak.handleCallback();
         if (tokens != null) {
           print('Login erfolgreich!');
+          context.watch<UiApiService>().setToken(tokens['access_token']);
         }
       } catch (e) {
         print('Callback Fehler: $e');
