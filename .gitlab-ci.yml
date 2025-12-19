@@ -51,7 +51,7 @@ build_webui:
     - flutter build web 
   artifacts:
     paths:
-      - WebUI/build/web/
+      - WebUI/managementserver_frontend/build/web/
   rules:
     - exists:
         - WebUI/managementserver_frontend/pubspec.yaml
