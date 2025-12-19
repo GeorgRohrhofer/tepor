@@ -10,7 +10,7 @@ import '../Keycloak/keycloak_web_service.dart';
 
 class UiApiService {
   UiApiService._privateConstructor() 
-    : baseUrl = dotenv.env['API_URL'] ?? '';
+    : baseUrl = String.fromEnvironment('API_URL');
   
   static final UiApiService _instance = UiApiService._privateConstructor();
   

@@ -17,7 +17,6 @@ import 'models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
 
   final userProvider = UserProvider();
   userProvider.setUser(
