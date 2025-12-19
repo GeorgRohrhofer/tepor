@@ -48,7 +48,7 @@ build_webui:
     - echo "Building Flutter WebUI..."
     - cd WebUI/managementserver_frontend
     - flutter pub get
-    - flutter build web --release
+    - flutter build web 
   artifacts:
     paths:
       - WebUI/build/web/
