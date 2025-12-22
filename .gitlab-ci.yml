@@ -29,6 +29,7 @@ build_nodebackend:
   rules:
     - exists:
         - NodeBackend/CMakeLists.txt
+    - changes: [NodeBackend/**/*]
 
 test_nodebackend:
   stage: test
@@ -40,6 +41,7 @@ test_nodebackend:
   rules:
     - exists:
         - NodeBackend/CMakeLists.txt
+    - changes: [NodeBackend/**/*]
 
 build_webui:
   stage: build
@@ -55,6 +57,7 @@ build_webui:
   rules:
     - exists:
         - WebUI/managementserver_frontend/pubspec.yaml
+    - changes: [WebUI/**/*]
 
 test_webui:
   stage: test
@@ -66,6 +69,7 @@ test_webui:
   rules:
     - exists:
         - WebUI/managementserver_frontend/test/
+    - changes: [WebUI/**/*]
 
 build_discordbot:
   stage: build
@@ -80,6 +84,7 @@ build_discordbot:
   rules:
     - exists:
         - DiscordBot/main.py
+    - changes: [DiscordBot/**/*]
 
 test_discordbot:
   stage: test
@@ -91,6 +96,7 @@ test_discordbot:
   rules:
     - exists:
         - DiscordBot/tests/
+    - changes: [DiscordBot/**/*]
 
 build_monitoring_client:
   stage: build
@@ -106,6 +112,7 @@ build_monitoring_client:
   rules:
     - exists:
         - MonitoringService/Client/*.sln
+    - changes: [MonitoringService/Client/**/*]
 
 test_monitoring_client:
   stage: test
@@ -116,6 +123,7 @@ test_monitoring_client:
   rules:
     - exists:
         - MonitoringService/Client/*.sln
+    - changes: [MonitoringService/Client/**/*]
 
 build_monitoring_server:
   stage: build
@@ -131,6 +139,7 @@ build_monitoring_server:
   rules:
     - exists:
         - MonitoringService/Server/*.sln
+    - changes: [MonitoringService/Server/**/*]
 
 test_monitoring_server:
   stage: test
@@ -141,6 +150,7 @@ test_monitoring_server:
   rules:
     - exists:
         - MonitoringService/Server/*.sln
+    - changes: [MonitoringService/Server/**/*]
 
 build_managementserver:
   stage: build
@@ -156,6 +166,7 @@ build_managementserver:
   rules:
     - exists:
         - ManagementBackend/*.sln
+    - changes: [ManagementBackend/**/*]
 
 test_managementserver:
   stage: test
@@ -166,6 +177,7 @@ test_managementserver:
   rules:
     - exists:
         - ManagementBackend/*.sln
+    - changes: [ManagementBackend/**/*]
 
 build_worldsync:
   stage: build
@@ -180,6 +192,7 @@ build_worldsync:
   rules:
     - exists:
         - WorldSynchronization/Cargo.toml
+    - changes: [WorldSynchronization/**/*]
 
 test_worldsync:
   stage: test
@@ -190,3 +203,4 @@ test_worldsync:
   rules:
     - exists:
         - WorldSynchronization/Cargo.toml
+    - changes: [WorldSynchronization/**/*]
