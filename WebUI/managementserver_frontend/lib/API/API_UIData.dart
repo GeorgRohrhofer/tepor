@@ -9,70 +9,22 @@ import '../models/user.dart';
 import '../Keycloak/keycloak_web_service.dart';
 
 class UiApiService {
-  UiApiService._privateConstructor() 
-    : baseUrl = String.fromEnvironment('API_URL');
-  
-  static final UiApiService _instance = UiApiService._privateConstructor();
-  
-  factory UiApiService() 
-  {
-    return _instance;
-  }
-
+  const UiApiService(String token)
+    : baseUrl = const String.fromEnvironment('API_URL'),
+      _token = token;
   final String baseUrl;
 
-  static String? _token;
-
-  // UiApiService()
-  //     : baseUrl = dotenv.env['API_URL'] ?? ''
-  // {
-  //   if (baseUrl.isEmpty) {
-  //     throw Exception("API_URL sind nicht gesetzt in .env!");
-  //   }
-  // }
+  final String? _token;
 
   String? get token => _token;
 
-  void setToken(String token) => _token = token;
-
-  /// Authenticate via Keycloak and store Bearer token
-  // Future<bool> authenticate() async {
-  //   debugPrint("Authenticating with $authUrl ...");
-  //   final body = {
-  //     'grant_type': 'password',
-  //     'client_id': clientId,
-  //     'username': clientUsername,
-  //     'password': clientPassword,
-  //   };
-  //
-  //   final response = await http.post(
-  //     Uri.parse(authUrl),
-  //     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-  //     body: body,
-  //   );
-  //
-  //   debugPrint('Auth Response: ${response.statusCode} ${response.body}');
-  //
-  //   if (response.statusCode == 200) {
-  //     final json = jsonDecode(response.body);
-  //     _token = json['access_token'];
-  //     debugPrint('Authenticated successfully. Token: $_token');
-  //     return true;
-  //   }
-  //
-  //   debugPrint('Authentication failed!');
-  //   return false;
-  // }
-
   Map<String, String> _authHeaders({Map<String, String>? extraHeaders}) {
     if (_token == null) {
-      _token = KeycloakWebService().getAccessToken();
-      // throw Exception("Token ist null. Bitte authenticate() vorher aufrufen!");
+      print('No token found...');
     }
     final headers = {'Authorization': 'Bearer $_token'};
     if (extraHeaders != null) headers.addAll(extraHeaders);
 
-    print(_token);
     return headers;
   }
 
@@ -94,7 +46,9 @@ class UiApiService {
     final response = await http.get(url, headers: _authHeaders());
 
     if (response.statusCode == 200) {
-      return (jsonDecode(response.body) as List<dynamic>).map((e) => e.toString()).toList();
+      return (jsonDecode(response.body) as List<dynamic>)
+          .map((e) => e.toString())
+          .toList();
     }
     return [];
   }
@@ -115,7 +69,10 @@ class UiApiService {
     if (nodeId.isEmpty) throw Exception("nodeId darf nicht leer sein");
     final url = Uri.parse('$baseUrl/UiApi/GetNode');
     debugPrint('GET $url with nodeId=$nodeId');
-    final response = await http.get(url, headers: _authHeaders(extraHeaders: {'nodeId': nodeId}));
+    final response = await http.get(
+      url,
+      headers: _authHeaders(extraHeaders: {'nodeId': nodeId}),
+    );
 
     if (response.statusCode == 200) {
       return ServerNode.fromJson(jsonDecode(response.body));
@@ -129,7 +86,9 @@ class UiApiService {
     final response = await http.get(url, headers: _authHeaders());
 
     if (response.statusCode == 200) {
-      return (jsonDecode(response.body) as List<dynamic>).map((json) => World.fromJson(json)).toList();
+      return (jsonDecode(response.body) as List<dynamic>)
+          .map((json) => World.fromJson(json))
+          .toList();
     }
     return [];
   }
@@ -138,10 +97,15 @@ class UiApiService {
     if (nodeId.isEmpty) throw Exception("nodeId darf nicht leer sein");
     final url = Uri.parse('$baseUrl/UiApi/GetWorldsByNode');
     debugPrint('GET $url with nodeId=$nodeId');
-    final response = await http.get(url, headers: _authHeaders(extraHeaders: {'nodeId': nodeId}));
+    final response = await http.get(
+      url,
+      headers: _authHeaders(extraHeaders: {'nodeId': nodeId}),
+    );
 
     if (response.statusCode == 200) {
-      return (jsonDecode(response.body) as List<dynamic>).map((json) => World.fromJson(json)).toList();
+      return (jsonDecode(response.body) as List<dynamic>)
+          .map((json) => World.fromJson(json))
+          .toList();
     }
     return [];
   }
@@ -150,7 +114,10 @@ class UiApiService {
     if (worldId.isEmpty) throw Exception("worldId darf nicht leer sein");
     final url = Uri.parse('$baseUrl/UiApi/GetWorld');
     debugPrint('GET $url with worldId=$worldId');
-    final response = await http.get(url, headers: _authHeaders(extraHeaders: {'worldId': worldId}));
+    final response = await http.get(
+      url,
+      headers: _authHeaders(extraHeaders: {'worldId': worldId}),
+    );
 
     if (response.statusCode == 200) {
       return World.fromJson(jsonDecode(response.body));
@@ -159,10 +126,14 @@ class UiApiService {
   }
 
   Future<bool> createWorld(String worldName, String worldConfig) async {
-    if (worldName.isEmpty || worldConfig.isEmpty) throw Exception("worldName und worldConfig dürfen nicht leer sein");
+    if (worldName.isEmpty || worldConfig.isEmpty)
+      throw Exception("worldName und worldConfig dürfen nicht leer sein");
     final url = Uri.parse('$baseUrl/UiApi/CreateWorld');
     debugPrint('POST $url with body=$worldName / $worldConfig');
-    final body = jsonEncode({'worldName': worldName, 'worldConfig': worldConfig});
+    final body = jsonEncode({
+      'worldName': worldName,
+      'worldConfig': worldConfig,
+    });
 
     final response = await http.post(
       url,
@@ -179,7 +150,10 @@ class UiApiService {
     final url = Uri.parse('$baseUrl/UiApi/DeleteWorld');
     debugPrint('DELETE $url with worldId=$worldId');
 
-    final response = await http.delete(url, headers: _authHeaders(extraHeaders: {'worldId': worldId}));
+    final response = await http.delete(
+      url,
+      headers: _authHeaders(extraHeaders: {'worldId': worldId}),
+    );
     debugPrint('Response: ${response.statusCode} ${response.body}');
 
     return response.statusCode == 200;
@@ -222,9 +196,7 @@ class UiApiService {
 
     final resp = await http.post(
       uri,
-      headers: _authHeaders(extraHeaders: {
-        'Content-Type': 'application/json',
-      }),
+      headers: _authHeaders(extraHeaders: {'Content-Type': 'application/json'}),
       body: jsonEncode(ids),
     );
 

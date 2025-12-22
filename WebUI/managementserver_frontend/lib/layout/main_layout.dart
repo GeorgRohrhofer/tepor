@@ -7,7 +7,6 @@ import '../Pages/world_list_page.dart';
 import '../Pages/servernode_list_page.dart';
 import '../Pages/settings_page.dart';
 
-import '../Keycloak/keycloak_web_service.dart';
 import 'dart:html' as html;
 
 class MainLayout extends StatefulWidget {
@@ -20,37 +19,9 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int selectedIndex = 0;
 
-  final KeycloakWebService _keycloak = KeycloakWebService();
-  bool _isAuthenticated = false;
-
   @override
   void initState() {
     super.initState();
-    _checkAuthStatus();
-  }
-
-  Future<void> _checkAuthStatus() async {
-    final uri = Uri.parse(html.window.location.href);
-    if (uri.queryParameters.containsKey('code')) {
-      try {
-        final tokens = await _keycloak.handleCallback();
-        if (tokens != null) {
-          print('Login erfolgreich!');
-          context.watch<UiApiService>().setToken(tokens['access_token']);
-        }
-      } catch (e) {
-        print('Callback Fehler: $e');
-      }
-    }
-
-    setState(() {
-      _isAuthenticated = _keycloak.isAuthenticated();
-    });
-
-    if (!_isAuthenticated) {
-      _keycloak.login();
-      context.watch<UiApiService>().setToken(_keycloak.getAccessToken() ?? "");
-    }
   }
 
   @override
@@ -80,7 +51,7 @@ class _MainLayoutState extends State<MainLayout> {
               onPressed: () {
                 Navigator.pop(context);
                 // Logout logic
-                _keycloak.logout();
+                // _keycloak.logout();
               },
               child: const Text('Logout'),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:managementserver_frontend/Keycloak/keycloak_web_service.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:html' as html;
 
 import 'theme.dart';
 import 'layout/main_layout.dart';
@@ -14,8 +15,31 @@ import 'provider/user_provider.dart';
 
 import 'models/user.dart';
 
-
 void main() async {
+  final KeycloakWebService _keycloak = KeycloakWebService();
+  var isAuthenticated = false;
+  var accessToken = "";
+
+  final uri = Uri.parse(html.window.location.href);
+  if (uri.queryParameters.containsKey('code')) {
+    try {
+      final tokens = await _keycloak.handleCallback();
+      if (tokens != null) {
+        print('Login erfolgreich!');
+        accessToken = tokens['access_token'];
+      }
+    } catch (e) {
+      print('Callback Fehler: $e');
+    }
+  }
+
+  isAuthenticated = _keycloak.isAuthenticated();
+
+  if (!isAuthenticated) {
+    _keycloak.login();
+    return;
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
 
   final userProvider = UserProvider();
@@ -23,7 +47,7 @@ void main() async {
     User(username: 'MaxMustermann', role: 'Admin'),
   );
 
-  final uiApiService = UiApiService();
+  final uiApiService = UiApiService(accessToken);
   runApp(
       Provider<UiApiService>.value(
         value: uiApiService,
