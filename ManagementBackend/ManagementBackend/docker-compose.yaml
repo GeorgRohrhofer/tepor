@@ -44,6 +44,9 @@
       # Monitoring Service Settings
       MonitoringIp: "http://127.0.0.1:6943"
 
+      # Velocity Connection Config
+      VelocityIp: "127.0.0.1"
+      VelocityPort: "9678"
 
 volumes:
   postgres-data:

@@ -1,4 +1,5 @@
-﻿using ManagementBackend.DataModels;
+﻿using BungeeCordIntegration;
+using ManagementBackend.DataModels;
 using ManagementBackend.resources;
 using ManagementBackend.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +9,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
+using static NpgsqlTypes.NpgsqlTsQuery;
 
 namespace ManagementBackend.Controllers
 {
@@ -19,12 +21,16 @@ namespace ManagementBackend.Controllers
         private readonly DiscordMessageSender _discordSender;
         private readonly NMcomService _nmComService;
         private MyDbContext db;
+        private readonly Velocity _velocityCon;
+        private readonly MonitoringComService _monitoringComService;
 
-        public UiApiController(DiscordMessageSender discordSender, NMcomService nmComService, MyDbContext db)
+        public UiApiController(DiscordMessageSender discordSender, NMcomService nmComService, MyDbContext db, Velocity velocity, MonitoringComService monitoringComService)
         {
             _discordSender = discordSender;
             _nmComService = nmComService;
+            _velocityCon = velocity;
             this.db = db;
+            _monitoringComService = monitoringComService;
         }
 
         [HttpGet("GetUserName")]
@@ -115,26 +121,30 @@ namespace ManagementBackend.Controllers
                 OwnerId = Guid.Parse(ownerId),
             };
 
-            var allNodes = db.Nodes.ToList();
-            var random = new Random();
-            var node = allNodes[random.Next(allNodes.Count)];
+            var nodeId = _monitoringComService.GetLeastUsedActiveNodeId();
 
             var worldStore = new WorldStore()
             {
                 Id = Guid.NewGuid(),
                 WorldId = world.Id,
-                RunningNodeId = node.Id,
+                RunningNodeId = nodeId,
                 BackUpNodeIds = new List<Guid>(),
             };
 
-            if (!_nmComService.SendCreateServer(world.Id, world.Config, node.Id))
+            if (!_nmComService.SendCreateServer(world.Id, world.Config, nodeId))
                 return Problem("Failed to Create the World.");
-            if(!_nmComService.SendStartServer(world.Id, node.Id))
+            if(!_nmComService.SendStartServer(world.Id, nodeId))
                 return Problem("Failed to Start the World.");
 
             db.Worlds.Add(world);
             db.WorldStores.Add(worldStore);
             db.SaveChanges();
+
+            var ip = _nmComService.GetIpByNodeId(nodeId);
+            if (ip == null)
+                return Problem("Velovity config could not be updated.");
+
+            _velocityCon.Register(world.Id.ToString(), ip, 25565);
 
             return Ok("World Created with ID: " + world.Id);
         }
@@ -149,6 +159,12 @@ namespace ManagementBackend.Controllers
                 return Problem("Failed to Delete the World.");
 
             db.Worlds.RemoveRange(db.Worlds.Where(w => w.Id == worldId));
+
+            var ip = _nmComService.GetIpByNodeId(nodeId);
+            if (ip == null)
+                return Problem("Velovity config could not be updated.");
+
+            _velocityCon.Unregister(worldId.ToString(), ip, 25565);
 
             return Ok("World Deleted with ID: " + worldId);
         }
