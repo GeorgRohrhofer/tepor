@@ -27,8 +27,11 @@ build_nodebackend:
     paths:
       - NodeBackend/build/install/
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - NodeBackend/CMakeLists.txt
+    - changes: [NodeBackend/**/*]
 
 test_nodebackend:
   stage: test
@@ -38,8 +41,11 @@ test_nodebackend:
     - cd NodeBackend/build
     - ctest --output-on-failure || echo "No tests found."
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - NodeBackend/CMakeLists.txt
+    - changes: [NodeBackend/**/*]
 
 build_webui:
   stage: build
@@ -53,8 +59,11 @@ build_webui:
     paths:
       - WebUI/build/web/
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - WebUI/managementserver_frontend/pubspec.yaml
+    - changes: [WebUI/**/*]
 
 test_webui:
   stage: test
@@ -64,8 +73,11 @@ test_webui:
     - cd WebUI/managementserver_frontend
     - flutter test || echo "No tests found."
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - WebUI/managementserver_frontend/test/
+    - changes: [WebUI/**/*]
 
 build_discordbot:
   stage: build
@@ -78,8 +90,11 @@ build_discordbot:
   script:
     - ruff check .
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - DiscordBot/main.py
+    - changes: [DiscordBot/**/*]
 
 test_discordbot:
   stage: test
@@ -89,8 +104,11 @@ test_discordbot:
     - cd DiscordBot
     - pytest || echo "No tests found."
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - DiscordBot/tests/
+    - changes: [DiscordBot/**/*]
 
 build_monitoring_client:
   stage: build
@@ -104,8 +122,11 @@ build_monitoring_client:
     paths:
       - MonitoringService/Client/bin/
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - MonitoringService/Client/*.sln
+    - changes: [MonitoringService/Client/**/*]
 
 test_monitoring_client:
   stage: test
@@ -114,8 +135,11 @@ test_monitoring_client:
     - cd MonitoringService/Client
     - dotnet test || echo "No tests found."
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - MonitoringService/Client/*.sln
+    - changes: [MonitoringService/Client/**/*]
 
 build_monitoring_server:
   stage: build
@@ -129,8 +153,11 @@ build_monitoring_server:
     paths:
       - MonitoringService/Server/bin/
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - MonitoringService/Server/*.sln
+    - changes: [MonitoringService/Server/**/*]
 
 test_monitoring_server:
   stage: test
@@ -139,8 +166,11 @@ test_monitoring_server:
     - cd MonitoringService/Server
     - dotnet test || echo "No tests found."
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - MonitoringService/Server/*.sln
+    - changes: [MonitoringService/Server/**/*]
 
 build_managementserver:
   stage: build
@@ -154,8 +184,11 @@ build_managementserver:
     paths:
       - ManagementBackend/ManagementBackend/bin/
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - ManagementBackend/*.sln
+    - changes: [ManagementBackend/**/*]
 
 test_managementserver:
   stage: test
@@ -164,8 +197,11 @@ test_managementserver:
     - cd ManagementBackend
     - dotnet test || echo "No tests found."
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - ManagementBackend/*.sln
+    - changes: [ManagementBackend/**/*]
 
 build_worldsync:
   stage: build
@@ -178,8 +214,11 @@ build_worldsync:
     paths:
       - WorldSynchronization/target/release/
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - WorldSynchronization/Cargo.toml
+    - changes: [WorldSynchronization/**/*]
 
 test_worldsync:
   stage: test
@@ -188,5 +227,8 @@ test_worldsync:
     - cd WorldSynchronization
     - cargo test -- --nocapture || echo "No tests found."
   rules:
+    - if: $WEEKLY == "true"
+      when: always
     - exists:
         - WorldSynchronization/Cargo.toml
+    - changes: [WorldSynchronization/**/*]
