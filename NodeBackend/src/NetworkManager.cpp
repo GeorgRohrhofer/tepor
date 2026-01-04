@@ -1,7 +1,10 @@
 #include "NetworkManager.h"
+#include <QtEndian>
+#include <QByteArray>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qsharedpointer.h>
+#include <stdexcept>
 #include <sys/socket.h>
 
 NetworkManager::NetworkManager(QObject *parent) 
@@ -26,16 +29,26 @@ void NetworkManager::connectToServer(const QString &host, quint16 port) {
 
   qDebug() << "Connecting to " << host << ":" << port;
   socket->connectToHost(host, port);
+
+  socket->waitForConnected();
 }
 
-void NetworkManager::sendMessage(const QByteArray &data) {
+void NetworkManager::sendMessage(const QByteArray data) {
   if (socket->state() != QAbstractSocket::ConnectedState) {
     qWarning() << "Cannot send - not connected";
     emit errorOccurred("Not connected to server");
     return;
   }
 
-  qint64 written = socket->write(data);
+  QByteArray all = QByteArray{};
+  all.append((char)0x01);
+
+  char bytes[4];
+  qToBigEndian(static_cast<quint32>(data.length()), bytes);
+  all.append(bytes, 4);
+
+  all.append(data);
+  qint64 written = socket->write(all);
   if (written == -1) {
     qWarning() << "Failed to write data";
     emit errorOccurred("Failed to send message");
@@ -65,10 +78,18 @@ void NetworkManager::onDisconnected() {
 }
 
 void NetworkManager::onReadyRead() {
-  QByteArray data = socket->readAll();
-  buffer.append(data);
+  QByteArray version = socket->read(1);
+  if (version[0] == 0x01) {
+    QByteArray dataLength = socket->read(4);
+    quint32 length = qFromBigEndian<quint32>(dataLength);
 
-  emit messageReceived(data);
+    QByteArray data = socket->read(length);
+    buffer.append(data);
+    emit messageReceived(data);
+    return;
+  }
+
+  throw std::runtime_error("Message with unsupported version received");
 }
 
 void NetworkManager::onError(QAbstractSocket::SocketError error) {
