@@ -1,20 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:managementserver_frontend/Keycloak/keycloak_web_service.dart';
+import 'package:provider/provider.dart';
+import 'dart:html' as html;
 
-void main() {
-  runApp(const MainApp());
+import 'theme.dart';
+import 'layout/main_layout.dart';
+
+import 'API/API_UIData.dart';
+import 'ViewModels/world_list_viewmodel.dart';
+import 'ViewModels/servernode_list_viewmodel.dart';
+import 'ViewModels/settings_viewmodel.dart';
+
+import 'provider/user_provider.dart';
+
+import 'models/user.dart';
+
+void main() async {
+  final KeycloakWebService _keycloak = KeycloakWebService();
+  var isAuthenticated = false;
+  var accessToken = "";
+
+  final uri = Uri.parse(html.window.location.href);
+  if (uri.queryParameters.containsKey('code')) {
+    try {
+      final tokens = await _keycloak.handleCallback();
+      if (tokens != null) {
+        print('Login erfolgreich!');
+        accessToken = tokens['access_token'];
+      }
+    } catch (e) {
+      print('Callback Fehler: $e');
+    }
+  }
+
+  isAuthenticated = _keycloak.isAuthenticated();
+
+  if (!isAuthenticated) {
+    _keycloak.login();
+    return;
+  }
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final userProvider = UserProvider();
+  userProvider.setUser(
+    User(username: 'MaxMustermann', role: 'Admin'),
+  );
+
+  final uiApiService = UiApiService(accessToken);
+  runApp(
+      Provider<UiApiService>.value(
+        value: uiApiService,
+        child: MultiProvider(
+          providers: [
+          ChangeNotifierProvider.value(value: userProvider),
+          ChangeNotifierProvider(
+            create: (_) => ServerNodeListViewModel(apiService: uiApiService),
+            ),
+          ChangeNotifierProvider(
+            create: (_) => WorldListViewModel(
+              apiService: uiApiService,
+              userProvider: userProvider,
+              ),
+            ),
+          ChangeNotifierProvider(
+            create: (_) => DiscordSettingsViewModel(apiService: uiApiService),
+            )
+          ],
+          child: const MyApp(),
+          ),
+        ),
+        );
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+    final materialTheme = MaterialTheme(ThemeData().textTheme);
+
+    return MaterialApp(
+      title: 'Management Server',
+      theme: materialTheme.light(),
+      home: const MainLayout(),
     );
   }
 }

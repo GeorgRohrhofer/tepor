@@ -54,10 +54,10 @@ build_webui:
     - echo "Building Flutter WebUI..."
     - cd WebUI/managementserver_frontend
     - flutter pub get
-    - flutter build web --release
+    - flutter build web 
   artifacts:
     paths:
-      - WebUI/build/web/
+      - WebUI/managementserver_frontend/build/web/
   rules:
     - if: $WEEKLY == "true"
       when: always
