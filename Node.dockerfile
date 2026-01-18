@@ -1,4 +1,4 @@
-FROM gcc:15 as cpp-build
+FROM gcc:15 AS cpp-build
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN tar -xzf cmake-4.1.2-linux-x86_64.tar.gz
 RUN mv cmake-4.1.2-linux-x86_64 /opt/cmake
 RUN ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
 
-COPY . ./NodeBackend
+COPY ./NodeBackend ./NodeBackend
 
 RUN echo "Building NodeBackend..."
 RUN cd NodeBackend && rm -rf build
@@ -26,9 +26,10 @@ RUN touch /flyway/sqlite.db
 #--------------------------------------------------------------
 # Building Monitoring and WorldSync
 #--------------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS csharp-build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS csharp-build
 WORKDIR /build/csharp
-COPY ../MonitoringService/Client/ClientMonitoringService/ ./MonService
+COPY ./MonitoringService/SharedLibraries/ /build/SharedLibraries/
+COPY ./MonitoringService/Client/ClientMonitoringService/ ./MonService
 WORKDIR /build/csharp/MonService
 RUN dotnet publish \
     -c Release \
@@ -38,7 +39,7 @@ RUN dotnet publish \
     -o /out/BackupSyncService
 
 WORKDIR /build/csharp
-COPY ../WorldSynchronization/BackupSyncService/Client/ ./WorldSync
+COPY ./WorldSynchronization/BackupSyncService/Client/ ./WorldSync
 WORKDIR /build/csharp/WorldSync
 RUN dotnet publish \
     -c Release \
@@ -67,6 +68,6 @@ COPY --from=cpp-build /app/NodeBackend/build/NodeBackend ./NodeBackend
 COPY --from=csharp-build /out/* ./ClientMonitoringService
 COPY --from=csharp-build /out/* ./Client
 
-RUN chmod +x ./cpp-app ./csharp-app
+RUN chmod +x ./NodeBackend ./ClientMonitoringService ./Client
 
 CMD ["./NodeBackend"]
