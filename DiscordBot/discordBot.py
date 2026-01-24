@@ -30,14 +30,13 @@ async def send_to_all_channels(channel_ids: list[int], message: str):
             print(f"Message sent to channel {channel_id}")
         else:
             print(f"Failed to send message to channel {channel_id}")
-            return Statuscode.WRONG_CHANNEL_ERROR
     return Statuscode.SUCCESS
 
 # Direct Message to User
 # Send Message to User
 async def _send_message_to_direct(user_id: int, message: str) -> Optional[discord.Message]:
     try:
-        user = await client.fetch_user(user_id) # schauen ob ich await brauche
+        user = await client.fetch_user(user_id) 
         if user:
             await user.send(message)
             return Statuscode.SUCCESS
@@ -57,10 +56,8 @@ async def send_to_all_directs(user_ids: list[int], message: str):
             print(f"Message sent to user {user_id}")
         elif result == Statuscode.USER_NOT_REACHABLE_ERROR:
             print(f"Failed to send message to user {user_id}. Privat Messages are deactivated.")
-            return Statuscode.USER_NOT_REACHABLE_ERROR
         else:
             print(f"Failed to send message to user {user_id}")
-            return Statuscode.WRONG_USER_ERROR
     return Statuscode.SUCCESS
 
 class Statuscode(Enum):
