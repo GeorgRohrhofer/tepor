@@ -11,7 +11,5 @@ First, a bot account needs to be setup at https://discord.com/developers.
 Once the bot account ist set up a token needs to be generated. 
 
 # Start the Bot
-The token is then saved to an evironment variable with the name: "MUSS NACHGESCHAUT WERDEN" (If run with docker, needs to be passed on.).
+The token is then saved to an evironment variable with the name: "DISCORD_BOT_TOKEN" (If run with docker, needs to be passed on.).
 The bot can then be started. (Once the bot is started, it should show up as online on discord.)
-
-
