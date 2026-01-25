@@ -24,7 +24,7 @@
       - db
     ports:
       # host:container
-      - "4444:4444"   # API
+      - "3333:3333"   # API
       - "5278:5278"   # TCP listener
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"

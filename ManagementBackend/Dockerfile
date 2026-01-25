@@ -12,10 +12,11 @@ RUN dotnet publish -c Release -o /app/out --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
+ENV ASPNETCORE_URLS=http://+:3333
 COPY --from=build /app/out .
 
 # Document internal ports
-EXPOSE 4444
+EXPOSE 3333
 EXPOSE 5278
 
 ENTRYPOINT ["dotnet", "ManagementBackend.dll"]

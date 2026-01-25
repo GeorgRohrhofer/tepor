@@ -14,7 +14,7 @@ namespace ManagementBackend
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.WebHost.UseUrls("http://0.0.0.0:3333", "https://0.0.0.0:4444");
+            builder.WebHost.UseUrls("http://0.0.0.0:3333"); //, "https://0.0.0.0:4444");
 
             // Add DbContext
             builder.Services.AddDbContext<MyDbContext>(options =>
@@ -116,7 +116,7 @@ namespace ManagementBackend
             }
 
             app.UseCors("AllowAll");
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
 
