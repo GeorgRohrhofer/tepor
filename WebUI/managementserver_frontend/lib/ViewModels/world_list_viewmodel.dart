@@ -50,8 +50,14 @@ class WorldListViewModel extends ChangeNotifier {
     required String worldname,
     required String worldMode,
     required String worldSeed,
+    Map<String, dynamic>? serverProperties,
   }) async {
-    final success = await apiService.createWorld(worldname, worldSeed);
+    final success = await apiService.createWorld(
+      worldname,
+      worldSeed,
+      worldMode: worldMode,
+      serverProperties: serverProperties,
+    );
     if (success) {
       await loadWorlds();
     }

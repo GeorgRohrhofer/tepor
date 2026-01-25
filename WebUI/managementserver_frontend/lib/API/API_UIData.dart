@@ -125,15 +125,32 @@ class UiApiService {
     return null;
   }
 
-  Future<bool> createWorld(String worldName, String worldConfig) async {
-    if (worldName.isEmpty || worldConfig.isEmpty)
-      throw Exception("worldName und worldConfig dürfen nicht leer sein");
+  Future<bool> createWorld(
+    String worldName,
+    String worldSeed, {
+    String? worldMode,
+    Map<String, dynamic>? serverProperties,
+  }) async {
+    if (worldName.isEmpty) {
+      throw Exception("worldName darf nicht leer sein");
+    }
     final url = Uri.parse('$baseUrl/UiApi/CreateWorld');
-    debugPrint('POST $url with body=$worldName / $worldConfig');
-    final body = jsonEncode({
+    debugPrint('POST $url with worldName=$worldName, worldSeed=$worldSeed');
+
+    final bodyMap = <String, dynamic>{
       'worldName': worldName,
-      'worldConfig': worldConfig,
-    });
+      'worldSeed': worldSeed,
+    };
+
+    if (worldMode != null) {
+      bodyMap['worldMode'] = worldMode;
+    }
+
+    if (serverProperties != null) {
+      bodyMap['serverProperties'] = serverProperties;
+    }
+
+    final body = jsonEncode(bodyMap);
 
     final response = await http.post(
       url,
