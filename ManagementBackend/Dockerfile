@@ -8,8 +8,7 @@ RUN dotnet nuget locals all --clear
 
 COPY . .
 RUN dotnet restore
-RUN dotnet build -c Release -o /app/build --no-restore
-# RUN dotnet publish -c Release -o /app/out --no-restore
+RUN dotnet publish -c Release -o /app/out --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
