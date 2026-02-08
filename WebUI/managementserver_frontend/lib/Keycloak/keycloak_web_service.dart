@@ -174,6 +174,8 @@ class KeycloakWebService {
     
     html.window.history.replaceState(null, '', '/');
     
+    print(tokens['access_token']);
+
     return tokens;
   }
 

@@ -26,7 +26,7 @@ namespace ManagementBackend.Services
 
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
-            db.Logs.Add(new Log() { Id=Guid.NewGuid(), RamUsage=69.420});
+            db.Logs.Add(new Log() { Id = Guid.NewGuid(), RamUsage = 69.420 });
             await db.SaveChangesAsync();
 
             var response = await httpClient.GetAsync(url);
@@ -44,11 +44,11 @@ namespace ManagementBackend.Services
 
             var minScore = 100;
             var minNodeId = Guid.Empty;
-            foreach(var node in allActiveNodes)
+            foreach (var node in allActiveNodes)
             {
                 var score = CalculatePerformanceScore(node.Value);
 
-                if(score < minScore)
+                if (score < minScore)
                 {
                     minScore = score;
                     minNodeId = node.Key;
@@ -83,7 +83,7 @@ namespace ManagementBackend.Services
     {
         public required double MemoryUsage { get; set; }
         public required double CpuUsage { get; set; }
-        public required double DiskUsage { get; set; } 
+        public required double DiskUsage { get; set; }
         public required double[] NetworkUsage { get; set; }
         public required DateTime LastUpdated { get; set; }
         public required bool StillActive { get; set; }
