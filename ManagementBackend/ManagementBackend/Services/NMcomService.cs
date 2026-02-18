@@ -119,7 +119,7 @@ namespace ManagementBackend.Services
             }
         }
 
-        private async Task HandleHeloRequest(NMPMessage<HELOReqData> ?heloReq, Socket socket)
+        private async Task HandleHeloRequest(NMPMessage<HELOReqData>? heloReq, Socket socket)
         {
             if (heloReq == null || heloReq.data == null)
                 return;
@@ -147,7 +147,7 @@ namespace ManagementBackend.Services
             await SendMessage(messageObject, heloReq.data.previous_id);
         }
 
-        private async Task HandleWorldSaved(NMPMessage<WorldSavedData> ?worldSaved, Socket socket)
+        private async Task HandleWorldSaved(NMPMessage<WorldSavedData>? worldSaved, Socket socket)
         {
             if (worldSaved == null || worldSaved.data == null)
                 return;
@@ -173,8 +173,8 @@ namespace ManagementBackend.Services
                 if (backUpNodeIds.Count > 0)
                 {
                     var activeNodes = _monitoringComService.GetActiveNodes();
-                    
-                    foreach(var backupNodeId in backUpNodeIds)
+
+                    foreach (var backupNodeId in backUpNodeIds)
                     {
                         if (activeNodes.Contains(backupNodeId))
                         {
@@ -201,7 +201,7 @@ namespace ManagementBackend.Services
             await db.SaveChangesAsync();
         }
 
-        private async Task HandleError(NMPMessage<ErrorData> ?error)
+        private async Task HandleError(NMPMessage<ErrorData>? error)
         {
             if (error == null || error.data == null)
                 return;

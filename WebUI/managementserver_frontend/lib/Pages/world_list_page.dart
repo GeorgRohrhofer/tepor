@@ -17,7 +17,7 @@ class WorldListPage extends StatelessWidget {
 
     // Load once after first build
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!vm.isLoading && vm.worlds.isEmpty) {
+      if (!vm.isLoading && !vm.worldsSet) {
         vm.loadWorlds();
       }
     });

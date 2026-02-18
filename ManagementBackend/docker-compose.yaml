@@ -27,7 +27,7 @@
       - "3333:3333"   # API
       - "5278:5278"   # TCP listener
     environment:
-      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_ENVIRONMENT: "Development"
 
       # DB connection overrides appsettings
       ConnectionStrings__DefaultDbConnection: "Host=db;Port=5432;Database=tepor_manage_db;Username=manager;Password=yourMum123"

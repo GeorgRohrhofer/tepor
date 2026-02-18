@@ -16,6 +16,8 @@ class WorldListViewModel extends ChangeNotifier {
 
   List<World> _worlds = [];
   List<World> get worlds => _worlds;
+  bool _worldsSet = false;
+  bool get worldsSet => _worldsSet;
 
   WorldOverlay activeOverlay = WorldOverlay.none;
   World? selectedWorld;
@@ -40,6 +42,7 @@ class WorldListViewModel extends ChangeNotifier {
     notifyListeners();
 
     _worlds = await apiService.getWorldsByCurrentUser();
+    _worldsSet = true;
 
     isLoading = false;
     notifyListeners();

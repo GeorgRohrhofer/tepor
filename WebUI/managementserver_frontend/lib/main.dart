@@ -43,11 +43,20 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final userProvider = UserProvider();
+  
+  const apiUrl = String.fromEnvironment('API_URL', defaultValue: 'http://localhost:3333');
+
+  final uiApiService = UiApiService(accessToken, apiUrl);
+  var currentUserName = await uiApiService.getCurrentUserName();
+  var currentUserRoles = await uiApiService.getRoles();
   userProvider.setUser(
-    User(username: 'MaxMustermann', role: 'Admin'),
+    User(
+      username: currentUserName,
+      role: currentUserRoles.last
+      ),
   );
 
-  final uiApiService = UiApiService(accessToken);
+
   runApp(
       Provider<UiApiService>.value(
         value: uiApiService,

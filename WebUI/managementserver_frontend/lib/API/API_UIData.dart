@@ -9,9 +9,10 @@ import '../models/user.dart';
 import '../Keycloak/keycloak_web_service.dart';
 
 class UiApiService {
-  const UiApiService(String token)
-    : baseUrl = const String.fromEnvironment('API_URL'),
+  const UiApiService(String token, String api_url)
+    : baseUrl = api_url,
       _token = token;
+
   final String baseUrl;
 
   final String? _token;
@@ -28,16 +29,16 @@ class UiApiService {
     return headers;
   }
 
-  Future<User?> getCurrentUser() async {
+  Future<String> getCurrentUserName() async {
     final url = Uri.parse('$baseUrl/UiApi/GetUserName');
     debugPrint('GET $url');
     final response = await http.get(url, headers: _authHeaders());
     debugPrint('Response: ${response.statusCode}');
 
     if (response.statusCode == 200) {
-      return User.fromJson(jsonDecode(response.body));
+      return response.body;
     }
-    return null;
+    return "";
   }
 
   Future<List<String>> getRoles() async {
