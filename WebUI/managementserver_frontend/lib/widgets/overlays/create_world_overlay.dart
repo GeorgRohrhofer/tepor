@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 class CreateWorldOverlay extends StatefulWidget {
   final VoidCallback onDiscard;
-  final void Function(String worldName, String seed, String gamemode, Map<String, dynamic> serverProperties) onCreate;
+  final void Function(String worldName, String configString) onCreate;
 
   const CreateWorldOverlay({
     Key? key,
@@ -115,6 +115,9 @@ class _CreateWorldOverlayState extends State<CreateWorldOverlay> {
 
   Map<String, dynamic> _buildServerProperties() {
     return {
+      'level-name': _worldNameController.text.trim(),
+      'level-seed': _seedController.text.trim(),
+      'gamemode': _selectedGamemode.toLowerCase(),
       'motd': _motdController.text,
       'max-players': int.tryParse(_maxPlayersController.text) ?? 20,
       'view-distance': int.tryParse(_viewDistanceController.text) ?? 10,
@@ -167,6 +170,25 @@ class _CreateWorldOverlayState extends State<CreateWorldOverlay> {
       'enable-jmx-monitoring': _enableJmxMonitoring,
       'enforce-secure-profile': _enforceSecureProfile,
     };
+  }
+
+  String _buildServerPropertiesString() {
+    final properties = _buildServerProperties();
+    final buffer = StringBuffer();
+    buffer.writeln('#Minecraft server properties');
+    properties.forEach((key, value) {
+      buffer.writeln('$key=$value');
+    });
+    return buffer.toString();
+  }
+
+  static String serverPropertiesToString(Map<String, dynamic> properties) {
+    final buffer = StringBuffer();
+    buffer.writeln('#Minecraft server properties');
+    properties.forEach((key, value) {
+      buffer.writeln('$key=$value');
+    });
+    return buffer.toString();
   }
 
   Widget _buildNumberField(String label, TextEditingController controller, {String? hint}) {
@@ -492,9 +514,7 @@ class _CreateWorldOverlayState extends State<CreateWorldOverlay> {
                         if (_formKey.currentState?.validate() ?? false) {
                           widget.onCreate(
                             _worldNameController.text.trim(),
-                            _seedController.text.trim(),
-                            _selectedGamemode,
-                            _buildServerProperties(),
+                            _buildServerPropertiesString()
                           );
                         }
                       },

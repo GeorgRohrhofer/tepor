@@ -51,15 +51,12 @@ class WorldListViewModel extends ChangeNotifier {
   /// Erstelle neue Welt
   Future<bool> createWorld({
     required String worldname,
-    required String worldMode,
-    required String worldSeed,
-    Map<String, dynamic>? serverProperties,
+    required String configString
   }) async {
+    print(configString);
     final success = await apiService.createWorld(
       worldname,
-      worldSeed,
-      worldMode: worldMode,
-      serverProperties: serverProperties,
+      configString
     );
     if (success) {
       await loadWorlds();

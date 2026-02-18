@@ -163,12 +163,10 @@ class WorldListPage extends StatelessWidget {
           if (vm.activeOverlay == WorldOverlay.create)
             CreateWorldOverlay(
               onDiscard: vm.closeOverlay,
-              onCreate: (name, seed, mode, serverProperties) async {
+              onCreate: (name, configString) async {
                 await vm.createWorld(
                   worldname: name,
-                  worldMode: mode,
-                  worldSeed: seed,
-                  serverProperties: serverProperties,
+                  configString: configString
                 );
                 vm.closeOverlay();
               },
