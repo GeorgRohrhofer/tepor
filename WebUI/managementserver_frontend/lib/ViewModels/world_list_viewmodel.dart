@@ -72,9 +72,8 @@ class WorldListViewModel extends ChangeNotifier {
     String? worldMode,
   }) {
     final world = _worlds.firstWhere((w) => w.id == id);
-    world.worldname = worldname;
-    world.creatorname = creatorname;
-    if (worldMode != null) world.worldMode = worldMode;
+    world.name = worldname;
+    world.ownerId = creatorname;
     notifyListeners();
   }
 

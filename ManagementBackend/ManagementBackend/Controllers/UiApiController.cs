@@ -56,9 +56,17 @@ namespace ManagementBackend.Controllers
         }
 
         [HttpGet("GetNodes")]
-        public ObjectResult GetNodes()
+        public async Task<ObjectResult> GetNodes()
         {
             var nodes = db.Nodes.ToList();
+            Dictionary<Guid, MonitoringElement> monData = await _monitoringComService.GetMonitoringData();
+
+            nodes.ForEach(n =>
+            {
+                n.Ram = monData.FirstOrDefault(x => x.Key == n.Id).Value.MemoryUsage;
+                n.Cpu = monData.FirstOrDefault(x => x.Key == n.Id).Value.CpuUsage;
+            });
+            
             string json = JsonSerializer.Serialize(nodes);
 
             return Ok(json);
@@ -146,7 +154,7 @@ namespace ManagementBackend.Controllers
             if (ip == null)
                 return Problem("Velovity config could not be updated.");
 
-            _velocityCon.Register(world.Id.ToString(), ip, 25565);
+            //_velocityCon.Register(world.Id.ToString(), ip, 25565);
 
             return Ok("World Created with ID: " + world.Id);
         }
@@ -161,16 +169,17 @@ namespace ManagementBackend.Controllers
                 return Problem("Failed to Delete the World.");
 
             db.Worlds.RemoveRange(db.Worlds.Where(w => w.Id == worldId));
+            db.SaveChanges();
 
             var ip = _nmComService.GetIpByNodeId(nodeId);
             if (ip == null)
                 return Problem("Velovity config could not be updated.");
 
-            _velocityCon.Unregister(worldId.ToString(), ip, 25565);
+            //_velocityCon.Unregister(worldId.ToString(), ip, 25565);
 
             return Ok("World Deleted with ID: " + worldId);
         }
-
+        
         [HttpGet("GetDiscordIDs")]
         public ObjectResult GetDiscordIDs()
         {

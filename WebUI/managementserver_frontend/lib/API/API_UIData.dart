@@ -87,6 +87,8 @@ class UiApiService {
     final response = await http.get(url, headers: _authHeaders());
 
     if (response.statusCode == 200) {
+      var t = (jsonDecode(response.body) as List<dynamic>);
+      print(t);
       return (jsonDecode(response.body) as List<dynamic>)
           .map((json) => World.fromJson(json))
           .toList();

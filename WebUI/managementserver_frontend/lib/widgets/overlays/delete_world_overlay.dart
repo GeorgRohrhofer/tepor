@@ -24,7 +24,7 @@ class DeleteWorldOverlay extends StatelessWidget {
               children: [
                 const Text('Delete World', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
-                Text('Are you sure you want to delete "${world.worldname}" created by ${world.creatorname}?'),
+                Text('Are you sure you want to delete "${world.name}" created by ${world.ownerId}?'),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,

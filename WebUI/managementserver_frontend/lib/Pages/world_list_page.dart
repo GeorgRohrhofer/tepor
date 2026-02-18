@@ -98,7 +98,6 @@ class WorldListPage extends StatelessWidget {
                                       DataColumn(label: Text('ID')),
                                       DataColumn(label: Text('World Name')),
                                       DataColumn(label: Text('Creator')),
-                                      DataColumn(label: Text('Seed')),
                                       DataColumn(label: Text('Actions')),
                                     ],
                                     rows: vm.worlds.map((world) {
@@ -114,21 +113,14 @@ class WorldListPage extends StatelessWidget {
                                             SizedBox(
                                               width: 200,
                                               child:
-                                                  Text(world.worldname),
+                                                  Text(world.name),
                                             ),
                                           ),
                                           DataCell(
                                             SizedBox(
                                               width: 120,
                                               child: Text(
-                                                  world.creatorname),
-                                            ),
-                                          ),
-                                          DataCell(
-                                            SizedBox(
-                                              width: 120,
-                                              child:
-                                                  Text(world.worldSeed),
+                                                  world.name),
                                             ),
                                           ),
                                           DataCell(
