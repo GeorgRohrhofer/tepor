@@ -24,8 +24,8 @@ namespace ManagementBackend.Controllers
 
         [HttpPost("SendDiscordDm")]
         public async Task<ObjectResult> SendDiscordDm(
-            [FromHeader(Name ="message")] string message,
-            [FromHeader(Name ="ids")] string[] ids)
+            [FromHeader(Name = "message")] string message,
+            [FromHeader(Name = "ids")] string[] ids)
         {
             await _discordSender.SendDm(message, ids);
 

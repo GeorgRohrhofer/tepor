@@ -144,7 +144,7 @@ namespace ManagementBackend.Services
         public required string current_version { get; set; }
     }
 
-    public class  ErrorData
+    public class ErrorData
     {
         public required string message { get; set; }
     }

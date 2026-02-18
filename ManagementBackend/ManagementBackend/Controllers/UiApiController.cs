@@ -40,15 +40,17 @@ namespace ManagementBackend.Controllers
         }
 
         [HttpGet("GetRoles")]
+        [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
         public ObjectResult GetRoles()
         {
-            var roles = string.Empty;
+            List<string> roles = [];
+            
 
             if (User.IsInRole("user"))
-                roles += "user\n";
+                roles.Add("user");
 
             if (User.IsInRole("admin"))
-                roles += "admin\n";
+                roles.Add("admin");
 
             return Ok(roles);
         }
@@ -133,7 +135,7 @@ namespace ManagementBackend.Controllers
 
             if (!_nmComService.SendCreateServer(world.Id, world.Config, nodeId))
                 return Problem("Failed to Create the World.");
-            if(!_nmComService.SendStartServer(world.Id, nodeId))
+            if (!_nmComService.SendStartServer(world.Id, nodeId))
                 return Problem("Failed to Start the World.");
 
             db.Worlds.Add(world);
