@@ -6,8 +6,19 @@ import '../provider/user_provider.dart';
 import '../widgets/overlays/create_world_overlay.dart';
 import '../widgets/overlays/delete_world_overlay.dart';
 
-class WorldListPage extends StatelessWidget {
+class WorldListPage extends StatefulWidget {
   const WorldListPage({super.key});
+
+  @override 
+  WorldListState createState() => WorldListState();
+}
+
+
+class WorldListState extends State<WorldListPage> {
+  @override 
+  void initState(){
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +187,10 @@ class WorldListPage extends StatelessWidget {
               },
             ),
         ],      
+      ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () => setState(() {}),
+          child: const Icon(Icons.refresh),
       ),
     );
   }

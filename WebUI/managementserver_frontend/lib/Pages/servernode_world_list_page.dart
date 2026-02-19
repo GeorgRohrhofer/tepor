@@ -120,6 +120,10 @@ class _ServerNodeWorldListPageState
                 ),
               ),
             ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () => setState(() {}),
+          child: const Icon(Icons.refresh),
+      ),
     );
   }
 }
