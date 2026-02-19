@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography.Xml;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
@@ -63,8 +64,20 @@ namespace ManagementBackend.Controllers
 
             nodes.ForEach(n =>
             {
-                n.Ram = monData.FirstOrDefault(x => x.Key == n.Id).Value.MemoryUsage;
-                n.Cpu = monData.FirstOrDefault(x => x.Key == n.Id).Value.CpuUsage;
+                // Need to check it this way, because FirstOrDefault does not return null if no element exists
+                KeyValuePair<Guid, MonitoringElement>? entry;
+                try
+                {
+                    entry = monData.First(x => x.Key == n.Id);
+                }
+                catch
+                {
+                    entry = null;
+                }
+
+                // -1 if no monitoring data is available for a node
+                n.Ram = entry?.Value.MemoryUsage ?? -1;
+                n.Cpu = entry?.Value.CpuUsage ?? -1;
             });
             
             string json = JsonSerializer.Serialize(nodes);
