@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography.Xml;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
@@ -56,9 +57,29 @@ namespace ManagementBackend.Controllers
         }
 
         [HttpGet("GetNodes")]
-        public ObjectResult GetNodes()
+        public async Task<ObjectResult> GetNodes()
         {
             var nodes = db.Nodes.ToList();
+            Dictionary<Guid, MonitoringElement> monData = await _monitoringComService.GetMonitoringData();
+
+            nodes.ForEach(n =>
+            {
+                // Need to check it this way, because FirstOrDefault does not return null if no element exists
+                KeyValuePair<Guid, MonitoringElement>? entry;
+                try
+                {
+                    entry = monData.First(x => x.Key == n.Id);
+                }
+                catch
+                {
+                    entry = null;
+                }
+
+                // -1 if no monitoring data is available for a node
+                n.Ram = entry?.Value.MemoryUsage ?? -1;
+                n.Cpu = entry?.Value.CpuUsage ?? -1;
+            });
+            
             string json = JsonSerializer.Serialize(nodes);
 
             return Ok(json);
@@ -146,7 +167,7 @@ namespace ManagementBackend.Controllers
             if (ip == null)
                 return Problem("Velovity config could not be updated.");
 
-            _velocityCon.Register(world.Id.ToString(), ip, 25565);
+            //_velocityCon.Register(world.Id.ToString(), ip, 25565);
 
             return Ok("World Created with ID: " + world.Id);
         }
@@ -161,16 +182,17 @@ namespace ManagementBackend.Controllers
                 return Problem("Failed to Delete the World.");
 
             db.Worlds.RemoveRange(db.Worlds.Where(w => w.Id == worldId));
+            db.SaveChanges();
 
             var ip = _nmComService.GetIpByNodeId(nodeId);
             if (ip == null)
                 return Problem("Velovity config could not be updated.");
 
-            _velocityCon.Unregister(worldId.ToString(), ip, 25565);
+            //_velocityCon.Unregister(worldId.ToString(), ip, 25565);
 
             return Ok("World Deleted with ID: " + worldId);
         }
-
+        
         [HttpGet("GetDiscordIDs")]
         public ObjectResult GetDiscordIDs()
         {

@@ -7,17 +7,17 @@ part of 'world.dart';
 // **************************************************************************
 
 World _$WorldFromJson(Map<String, dynamic> json) => World(
-  id: json['id'] as String,
-  worldname: json['worldname'] as String,
-  creatorname: json['creatorname'] as String,
-  worldMode: json['worldMode'] as String,
-  worldSeed: json['worldSeed'] as String,
+  id: json['Id'] as String,
+  name: json['Name'] as String,
+  ownerId: json['OwnerId'] as String,
+  hash: json['Hash'] as String,
+  config: json['Config'] as String,
 );
 
 Map<String, dynamic> _$WorldToJson(World instance) => <String, dynamic>{
-  'id': instance.id,
-  'worldname': instance.worldname,
-  'creatorname': instance.creatorname,
-  'worldMode': instance.worldMode,
-  'worldSeed': instance.worldSeed,
+  'Id': instance.id,
+  'Name': instance.name,
+  'OwnerId': instance.ownerId,
+  'Hash': instance.hash,
+  'Config': instance.config,
 };

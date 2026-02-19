@@ -65,16 +65,14 @@ class _ServerNodeWorldListPageState
                         DataColumn(label: Text('ID')),
                         DataColumn(label: Text('World Name')),
                         DataColumn(label: Text('Creator')),
-                        DataColumn(label: Text('World Seed')),
                         DataColumn(label: Text('Actions')),
                       ],
                       rows: vm.worlds.map((world) {
                         return DataRow(
                           cells: [
                             DataCell(Text(world.id)),
-                            DataCell(Text(world.worldname)),
-                            DataCell(Text(world.creatorname)),
-                            DataCell(Text(world.worldSeed)),
+                            DataCell(Text(world.name)),
+                            DataCell(Text(world.ownerId)),
                             DataCell(
                               IconButton(
                                 icon: Icon(
@@ -89,7 +87,7 @@ class _ServerNodeWorldListPageState
                                       title:
                                           const Text("Confirm Delete"),
                                       content: Text(
-                                        "Delete world '${world.worldname}'?",
+                                        "Delete world '${world.name}'?",
                                       ),
                                       actions: [
                                         TextButton(

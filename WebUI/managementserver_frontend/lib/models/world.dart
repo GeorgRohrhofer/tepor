@@ -5,17 +5,17 @@ part 'world.g.dart';
 @JsonSerializable()
 class World {
   final String id;
-  String worldname;
-  String creatorname;
-  String worldMode;
-  final String worldSeed;
+  String name;
+  String ownerId;
+  String hash;
+  String config;
 
   World({
     required this.id,
-    required this.worldname,
-    required this.creatorname,
-    required this.worldMode,
-    required this.worldSeed,
+    required this.name,
+    required this.ownerId,
+    required this.hash,
+    required this.config
   });
 
   factory World.fromJson(Map<String, dynamic> json) => _$WorldFromJson(json);

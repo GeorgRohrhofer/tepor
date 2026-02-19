@@ -20,8 +20,8 @@ class _EditWorldOverlayState extends State<EditWorldOverlay> {
   @override
   void initState() {
     super.initState();
-    _nameCtl = TextEditingController(text: widget.world.worldname);
-    _creatorCtl = TextEditingController(text: widget.world.creatorname);
+    _nameCtl = TextEditingController(text: widget.world.name);
+    _creatorCtl = TextEditingController(text: widget.world.ownerId);
   }
 
   @override
@@ -46,7 +46,7 @@ class _EditWorldOverlayState extends State<EditWorldOverlay> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Edit World: ${widget.world.worldname}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text('Edit World: ${widget.world.name}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   Form(
                     key: _formKey,
