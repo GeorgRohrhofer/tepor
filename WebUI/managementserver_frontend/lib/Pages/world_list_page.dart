@@ -9,14 +9,13 @@ import '../widgets/overlays/delete_world_overlay.dart';
 class WorldListPage extends StatefulWidget {
   const WorldListPage({super.key});
 
-  @override 
+  @override
   WorldListState createState() => WorldListState();
 }
 
-
 class WorldListState extends State<WorldListPage> {
-  @override 
-  void initState(){
+  @override
+  void initState() {
     super.initState();
   }
 
@@ -50,10 +49,7 @@ class WorldListState extends State<WorldListPage> {
             ),
             Text(
               'Role: ${user.role}',
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 14, color: colors.onSurfaceVariant),
             ),
           ],
         ),
@@ -70,8 +66,7 @@ class WorldListState extends State<WorldListPage> {
                 Row(
                   children: [
                     FilledButton(
-                      onPressed: () =>
-                          vm.showOverlay(WorldOverlay.create),
+                      onPressed: () => vm.showOverlay(WorldOverlay.create),
                       child: const Text('Create New World'),
                     ),
                   ],
@@ -82,81 +77,69 @@ class WorldListState extends State<WorldListPage> {
                 // ─────────── CONTENT ───────────
                 Expanded(
                   child: vm.isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(),
-                        )
+                      ? const Center(child: CircularProgressIndicator())
                       : vm.worlds.isEmpty
-                          ? const Center(
-                              child: Text('No worlds available'),
-                            )
-                          : SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: colors.outlineVariant,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
+                      ? const Center(child: Text('No worlds available'))
+                      : SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: colors.outlineVariant),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                  minWidth: MediaQuery.of(context).size.width - 50,
                                 ),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.vertical,
-                                  child: DataTable(
-                                    headingRowColor:
-                                        WidgetStatePropertyAll(
-                                      colors.surfaceContainerHigh,
-                                    ),
-                                    columns: const [
-                                      DataColumn(label: Text('ID')),
-                                      DataColumn(label: Text('World Name')),
-                                      DataColumn(label: Text('Creator')),
-                                      DataColumn(label: Text('Actions')),
-                                    ],
-                                    rows: vm.worlds.map((world) {
-                                      return DataRow(
-                                        cells: [
-                                          DataCell(
-                                            SizedBox(
-                                              width: 250,
-                                              child: Text(world.id),
-                                            ),
-                                          ),
-                                          DataCell(
-                                            SizedBox(
-                                              width: 200,
-                                              child:
-                                                  Text(world.name),
-                                            ),
-                                          ),
-                                          DataCell(
-                                            SizedBox(
-                                              width: 120,
-                                              child: Text(
-                                                  world.name),
-                                            ),
-                                          ),
-                                          DataCell(
-                                            SizedBox(
-                                              width: 120,
-                                              child: IconButton(
-                                                icon: Icon(
-                                                  Icons.delete,
-                                                  color: colors.error,
-                                                ),
-                                                onPressed: () => vm
-                                                    .showOverlay(
-                                                  WorldOverlay.delete,
-                                                  world,
-                                                ),
+                                child: DataTable(
+                                  headingRowColor: WidgetStatePropertyAll(
+                                    colors.surfaceContainerHigh,
+                                  ),
+                                  columns: const [
+                                    DataColumn(label: Text('ID')),
+                                    DataColumn(label: Text('World Name')),
+                                    DataColumn(label: Text('Creator')),
+                                    DataColumn(label: Text('Actions')),
+                                  ],
+                                  rows: vm.worlds.map((world) {
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(
+                                          SizedBox(child: Text(world.id)),
+                                        ),
+                                        DataCell(
+                                          SizedBox(child: Text(world.name)),
+                                        ),
+                                        DataCell(
+                                          SizedBox(child: Text(world.ownerId)),
+                                        ),
+                                        DataCell(
+                                          SizedBox(
+                                            child: IconButton(
+                                              icon: Icon(
+                                                Icons.delete,
+                                                color: colors.error,
+                                              ),
+                                              onPressed: () => vm.showOverlay(
+                                                WorldOverlay.delete,
+                                                world,
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      );
-                                    }).toList(),
-                                  ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
                                 ),
                               ),
                             ),
+                          ),
+                        ),
+                      ),
                 ),
               ],
             ),
@@ -169,7 +152,7 @@ class WorldListState extends State<WorldListPage> {
               onCreate: (name, configString) async {
                 await vm.createWorld(
                   worldname: name,
-                  configString: configString
+                  configString: configString,
                 );
                 vm.closeOverlay();
               },
@@ -186,11 +169,11 @@ class WorldListState extends State<WorldListPage> {
                 vm.closeOverlay();
               },
             ),
-        ],      
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-          onPressed: () => setState(() {}),
-          child: const Icon(Icons.refresh),
+        onPressed: () => setState(() {}),
+        child: const Icon(Icons.refresh),
       ),
     );
   }
