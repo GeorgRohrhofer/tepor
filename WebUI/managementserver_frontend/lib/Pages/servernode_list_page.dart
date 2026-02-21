@@ -86,6 +86,10 @@ class _ServerNodeListPageState extends State<ServerNodeListPage> {
                 ),
               ),
             ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () => setState(() {}),
+          child: const Icon(Icons.refresh),
+      ),
     );
   }
 }
