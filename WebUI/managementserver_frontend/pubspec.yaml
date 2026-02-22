@@ -34,7 +34,11 @@ dependencies:
   get_storage: ^2.1.1
 
   flutter_dotenv: ^6.0.0
-
+  restart_app: # ^1.3.2
+    git:
+        url: https://github.com/ferrarielectronic/restart_app.git
+        ref: master 
+        
 dev_dependencies:
   flutter_test:
     sdk: flutter

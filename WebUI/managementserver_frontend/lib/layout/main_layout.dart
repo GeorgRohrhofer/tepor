@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:restart_app/restart_app.dart';
 
 import '../API/API_UIData.dart';
 import '../widgets/sidebar.dart';
@@ -52,6 +53,8 @@ class _MainLayoutState extends State<MainLayout> {
                 Navigator.pop(context);
                 // Logout logic
                 // _keycloak.logout();
+                html.window.sessionStorage.clear();
+                Restart.restartApp();
               },
               child: const Text('Logout'),
             ),
