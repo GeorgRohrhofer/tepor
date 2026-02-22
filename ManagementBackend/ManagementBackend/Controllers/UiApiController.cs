@@ -101,8 +101,19 @@ namespace ManagementBackend.Controllers
             if (ownerId == null)
                 return BadRequest("User ID not found in token.");
 
-            var worlds = db.Worlds.Where(w => w.OwnerId == Guid.Parse(ownerId));
-            string json = JsonSerializer.Serialize(worlds);
+            string json;
+            
+            if (User.IsInRole("admin")) 
+            {
+                var worlds = db.Worlds;
+                json = JsonSerializer.Serialize(worlds);
+            }
+            else 
+            {
+                var worlds = db.Worlds.Where(w => w.OwnerId == Guid.Parse(ownerId));
+                json = JsonSerializer.Serialize(worlds);
+            }
+
 
             return Ok(json);
         }
