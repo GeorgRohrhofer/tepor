@@ -111,11 +111,8 @@ public:
       }
 
       createBody["ExposedPorts"] = exposedPorts;
-      createBody["HostConfig"] = {{"PortBindings", portBindingsJson}};
-
-      if (!hostConfig.empty()) {
-        createBody["HostConfig"] = hostConfig;
-      }
+      hostConfig["PortBindings"] = portBindingsJson;
+      createBody["HostConfig"] = hostConfig;
     }
 
     std::string endpoint = "/containers/create";
