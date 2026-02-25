@@ -18,13 +18,14 @@ services:
 
   tepor-manage:
     build:
-        context: ../../ManagementBackend/ManagementBackend
-        dockerfile: Dockerfile
+        context: ../../
+        dockerfile: ManagementBackend.dockerfile
     depends_on:
       - db
     ports:
       # host:container
       - "4444:4444"   # API
+      - "3333:3333"
       - "5278:5278"   # TCP listener
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
@@ -48,26 +49,32 @@ services:
 
   monitoring-server:
     build:
-      context: ../../MonitoringService/Server/ServerMonitoringService/
-      dockerfile: Dockerfile
+      context: ../../
+      dockerfile: MonitoringService.dockerfile
     ports:
       - 6942:6942
   discord-bot:
     build:
-      context: ../../DiscordBot/
-      dockerfile: Dockerfile
+      context: ../../
+      dockerfile: DiscordBot.dockerfile
     env_file:
       - .env
     ports:
       - 6969:6969
+  velocity-plugin:
+    build:
+      context: ../../
+      dockerfile: VelocityPlugin.dockerfile
+    ports:
+      - 25577:25577
   web-ui:
     depends_on:
       - tepor-manage
       - monitoring-server
       - discord-bot
     build:
-      context: ../../WebUI/
-      dockerfile: Dockerfile
+      context: ../../
+      dockerfile: WebUI.dockerfile
     ports:
       - 80:80
       - 443:443

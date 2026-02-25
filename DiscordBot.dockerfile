@@ -1,9 +1,9 @@
 FROM python:3.14.0
 
-COPY requirements.txt .
+COPY DiscordBot/requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY DiscordBot/ .
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 6969

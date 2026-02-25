@@ -6,7 +6,7 @@ WORKDIR /src
 
 RUN dotnet nuget locals all --clear
 
-COPY . .
+COPY ManagementBackend/ .
 RUN dotnet restore
 RUN dotnet publish -c Release -o /app/out --no-restore
 
