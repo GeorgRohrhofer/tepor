@@ -11,7 +11,7 @@ RUN curl -fSL "https://fill-data.papermc.io/v1/objects/ef1a852bfae7397e849078379
      -o /velocity/velocity.jar
 
 # -------- Optional: copy plugins --------
-COPY . /tepor/VelocityPlugin
+COPY VelocityPlugin/ /tepor/VelocityPlugin
 WORKDIR /tepor/VelocityPlugin/velocity-plugin
 RUN mvn clean package
 RUN cp target/*.jar /velocity/plugins/
@@ -27,4 +27,3 @@ EXPOSE 25577
 
 # -------- Start Velocity --------
 CMD ["java", "-Xms256M", "-Xmx512M", "-jar", "velocity.jar"]
-

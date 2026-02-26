@@ -6,8 +6,12 @@ WORKDIR /source
 
 RUN dotnet nuget locals all --clear
 
-COPY . .
-RUN dotnet clean
+# Copy project files and dependencies
+COPY MonitoringService/Server/ServerMonitoringService/ MonitoringService/Server/ServerMonitoringService/
+COPY MonitoringService/SharedLibraries/ MonitoringService/SharedLibraries/
+COPY Libs/dotnet/Monitoring/ Libs/dotnet/Monitoring/
+
+WORKDIR /source/MonitoringService/Server/ServerMonitoringService
 RUN dotnet restore -a $TARGETARCH
 RUN dotnet publish -a $TARGETARCH --no-restore -o /app
 

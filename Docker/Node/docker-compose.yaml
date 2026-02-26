@@ -1,8 +1,8 @@
 services:
   node-backend:
     build:
-      context: ../../NodeBackend/
-      dockerfile: Dockerfile
+      context: ../../
+      dockerfile: Node.dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/sqlite.db:/flyway/sqlite.db
