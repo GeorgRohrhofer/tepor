@@ -59,15 +59,19 @@ namespace ClientMonitoringService
         /// <returns></returns>
         static double GetCpuUsage()
         {
-            string[] cpuLine1 = File.ReadLines("/proc/stat").First().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            long idle1 = long.Parse(cpuLine1[4]);
-            long total1 = cpuLine1.Skip(1).Select(long.Parse).Sum();
+            static (long idle, long total) ReadStat()
+            {
+                var parts = File.ReadLines("/proc/stat").First()
+                                .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                // parts[0] = "cpu", [1]=user [2]=nice [3]=system [4]=idle [5]=iowait [6]=irq [7]=softirq [8]=steal
+                long idle = long.Parse(parts[4]) + long.Parse(parts[5]); // idle + iowait
+                long total = parts.Skip(1).Take(8).Select(long.Parse).Sum(); // nur die ersten 8 Werte
+                return (idle, total);
+            }
 
+            var (idle1, total1) = ReadStat();
             Thread.Sleep(500);
-
-            string[] cpuLine2 = File.ReadLines("/proc/stat").First().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            long idle2 = long.Parse(cpuLine2[4]);
-            long total2 = cpuLine2.Skip(1).Select(long.Parse).Sum();
+            var (idle2, total2) = ReadStat();
 
             long idleDiff = idle2 - idle1;
             long totalDiff = total2 - total1;

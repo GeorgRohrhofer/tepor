@@ -28,14 +28,14 @@ namespace ClientMonitoringService
         }
 
         public bool SendSystemData(MonitoringMessage message)
-        { 
+        {
             byte[] messageBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
             byte versionNumber = 1;
             byte[] senderMessageBytes = new byte[messageBytes.Length + 1];
             senderMessageBytes[0] = versionNumber;
             Array.Copy(messageBytes, 0, senderMessageBytes, 1, messageBytes.Length);
-            
-            try 
+
+            try
             {
                 _stream.Write(senderMessageBytes);
             }

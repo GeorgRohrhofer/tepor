@@ -37,7 +37,7 @@ namespace ClientMonitoringService
         {
             get
             {
-                return _serverPort; 
+                return _serverPort;
             }
             set
             {
