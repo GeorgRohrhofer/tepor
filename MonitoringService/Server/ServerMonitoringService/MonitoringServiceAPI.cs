@@ -28,7 +28,7 @@ namespace ServerMonitoringService
 
         private void _StartNetworkListener(int port)
         {
-            _listener.Prefixes.Add($"http://127.0.0.1:{port}/");
+            _listener.Prefixes.Add($"http://*:{port}/");
             _listener.Start();
             Console.WriteLine($"HTTP Listener started on port {port}");
 
