@@ -20,6 +20,7 @@ void main() async {
   var isAuthenticated = false;
   var accessToken = "";
 
+
   final uri = Uri.parse(html.window.location.href);
   if (uri.queryParameters.containsKey('code')) {
     try {
@@ -31,6 +32,13 @@ void main() async {
     } catch (e) {
       print('Callback Fehler: $e');
     }
+  }
+  else {
+    // temporary fix
+    html.window.sessionStorage.remove('access_token');
+    html.window.sessionStorage.remove('refresh_token');
+    html.window.sessionStorage.remove('id_token');
+    html.window.sessionStorage.remove('auth_state');
   }
 
   isAuthenticated = _keycloak.isAuthenticated();
