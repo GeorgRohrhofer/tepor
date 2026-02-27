@@ -12,6 +12,7 @@ namespace ClientMonitoringService
     public class SystemResourceMonitor
     {
         private static List<string>? _networkInterfaces;
+        private static Dictionary<string, (long rx, long tx, DateTime time)> _prevNetworkStats = new();
 
         public SystemResourceMonitor()
         {
@@ -59,15 +60,19 @@ namespace ClientMonitoringService
         /// <returns></returns>
         static double GetCpuUsage()
         {
-            string[] cpuLine1 = File.ReadLines("/proc/stat").First().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            long idle1 = long.Parse(cpuLine1[4]);
-            long total1 = cpuLine1.Skip(1).Select(long.Parse).Sum();
+            static (long idle, long total) ReadStat()
+            {
+                var parts = File.ReadLines("/proc/stat").First()
+                                .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                // parts[0] = "cpu", [1]=user [2]=nice [3]=system [4]=idle [5]=iowait [6]=irq [7]=softirq [8]=steal
+                long idle = long.Parse(parts[4]) + long.Parse(parts[5]); // idle + iowait
+                long total = parts.Skip(1).Take(8).Select(long.Parse).Sum();
+                return (idle, total);
+            }
 
-            Thread.Sleep(500);
-
-            string[] cpuLine2 = File.ReadLines("/proc/stat").First().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            long idle2 = long.Parse(cpuLine2[4]);
-            long total2 = cpuLine2.Skip(1).Select(long.Parse).Sum();
+            var (idle1, total1) = ReadStat();
+            Thread.Sleep(250);
+            var (idle2, total2) = ReadStat();
 
             long idleDiff = idle2 - idle1;
             long totalDiff = total2 - total1;
@@ -105,40 +110,22 @@ namespace ClientMonitoringService
         /// <returns>Tuple of (rx, tx) in bytes</returns>
         static (long rx, long tx) GetNetworkUsage()
         {
-
             if (_networkInterfaces == null)
-            {
                 throw new ArgumentException("No network interfaces found");
-            }
 
-            List<(long, long)> ethNetworks = new List<(long, long)>();
-            foreach (string iface in _networkInterfaces)
-            {
-                if (iface.StartsWith("eth") || iface.StartsWith("en"))
-                {
-                    ethNetworks.Add(GetNetworkUsageForInterface(iface));
-                }
-            }
+            // Priority: Interface with most traffic 
+            string? selected = _networkInterfaces
+              .Where(i => i != "lo")
+              .OrderByDescending(i => {
+                  string rxPath = $"/sys/class/net/{i}/statistics/rx_bytes";
+                  return File.Exists(rxPath) ? long.Parse(File.ReadAllText(rxPath).Trim()) : 0;
+                  })
+              .FirstOrDefault(); 
 
-            foreach ((long, long) network in ethNetworks)
-            {
-                if (!(network.Item1 == 0) && !(network.Item2 == 0))
-                    return network;
-            }
+            if (selected == null)
+                throw new ArgumentException("No network interfaces found");
 
-            List<(long, long)> allNetworks = new List<(long, long)>();
-            foreach (string iface in _networkInterfaces)
-            {
-                allNetworks.Add(GetNetworkUsageForInterface(iface));
-            }
-
-            foreach ((long, long) network in allNetworks)
-            {
-                if (!(network.Item1 == 0) && !(network.Item2 == 0))
-                    return network;
-            }
-
-            throw new ArgumentException("No valid network interface");
+            return GetNetworkUsageForInterface(selected);
         }
 
         static (long rx, long tx) GetNetworkUsage(string networkInterface)
@@ -155,13 +142,30 @@ namespace ClientMonitoringService
         {
             string rxPath = $"/sys/class/net/{iface}/statistics/rx_bytes";
             string txPath = $"/sys/class/net/{iface}/statistics/tx_bytes";
-
+ 
             if (!File.Exists(rxPath) || !File.Exists(txPath))
                 return (0, 0);
 
             long rx = long.Parse(File.ReadAllText(rxPath).Trim());
             long tx = long.Parse(File.ReadAllText(txPath).Trim());
-            return (rx, tx);
+            DateTime now = DateTime.UtcNow;
+
+            if (!_prevNetworkStats.TryGetValue(iface, out var prev))
+            {
+                _prevNetworkStats[iface] = (rx, tx, now);
+                return (0, 0);
+            }
+
+            double elapsed = (now - prev.time).TotalSeconds;
+            if (elapsed <= 0)
+                return (0, 0);
+
+            long rxDelta = (long)((rx - prev.rx) / elapsed);
+            long txDelta = (long)((tx - prev.tx) / elapsed);
+
+            _prevNetworkStats[iface] = (rx, tx, now);
+
+            return (rxDelta, txDelta);
         }
 
         static List<string> GetNetworkInterfaces()
@@ -170,10 +174,10 @@ namespace ClientMonitoringService
             List<string> interfaces = new List<string>();
             if (Directory.Exists(netClassPath))
             {
-                interfaces = Directory.GetDirectories(netClassPath)
-                    .Select(d => new DirectoryInfo(d).Name)
-                    .Where(name => !name.Equals("lo", StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                interfaces = Directory.GetDirectories("/sys/class/net/")
+                  .Select(Path.GetFileName)
+                  .Where(i => i != null && i != "lo")
+                  .ToList()!;
             }
             return interfaces;
         }
