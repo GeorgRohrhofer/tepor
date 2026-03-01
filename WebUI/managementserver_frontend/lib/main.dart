@@ -41,11 +41,15 @@ void main() async {
     html.window.sessionStorage.remove('auth_state');
   }
 
-  isAuthenticated = _keycloak.isAuthenticated();
+    isAuthenticated = _keycloak.isAuthenticated();
 
   if (!isAuthenticated) {
     _keycloak.login();
     return;
+  }
+
+  if (accessToken.isEmpty) {
+    accessToken = _keycloak.getAccessToken() ?? "";
   }
 
   WidgetsFlutterBinding.ensureInitialized();
