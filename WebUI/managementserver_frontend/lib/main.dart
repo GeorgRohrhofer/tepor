@@ -33,19 +33,16 @@ void main() async {
       print('Callback Fehler: $e');
     }
   }
-  else {
-    // temporary fix
-    html.window.sessionStorage.remove('access_token');
-    html.window.sessionStorage.remove('refresh_token');
-    html.window.sessionStorage.remove('id_token');
-    html.window.sessionStorage.remove('auth_state');
-  }
 
   isAuthenticated = _keycloak.isAuthenticated();
 
   if (!isAuthenticated) {
     _keycloak.login();
     return;
+  }
+
+  if (accessToken.isEmpty) {
+    accessToken = _keycloak.getAccessToken() ?? "";
   }
 
   WidgetsFlutterBinding.ensureInitialized();
