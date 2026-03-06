@@ -1,12 +1,25 @@
-FROM python:3.14.0
+# -------- Build Stage --------
+FROM golang:1.22-alpine AS builder
 
-COPY DiscordBot/requirements.txt .
-RUN pip install -r requirements.txt
+WORKDIR /app
 
-COPY DiscordBot/ .
-RUN chmod +x /entrypoint.sh
+COPY DiscordBot/go.mod DiscordBot/go.sum ./
+RUN go mod download
+
+COPY DiscordBot .
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app main.go
+
+
+# -------- Runtime Stage --------
+FROM alpine:3.20
+
+WORKDIR /app
+
+RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /app/app .
 
 EXPOSE 6969
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python", "main.py"]
+CMD ["./app"]
