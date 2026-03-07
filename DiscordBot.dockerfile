@@ -1,5 +1,5 @@
 # -------- Build Stage --------
-FROM golang:1.22-alpine AS builder
+FROM golang:1.26.1-alpine AS builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY DiscordBot .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o app main.go
 
 
 # -------- Runtime Stage --------

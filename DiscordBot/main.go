@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
@@ -33,8 +34,12 @@ type DirectRequest struct {
 }
 
 func onReady(s *discordgo.Session, r *discordgo.Ready) {
+	var once sync.Once
+
 	fmt.Println("Logged in as", s.State.User.Username)
-	close(ready)
+	once.Do(func() {
+		close(ready)
+	})
 }
 
 func sendMessageToChannel(channelID string, message string) Statuscode {
@@ -185,7 +190,7 @@ func startAPI() {
 			c.String(http.StatusBadRequest, "Invalid User ID")
 
 		case USER_NOT_REACHABLE_ERROR:
-			c.String(http.StatusBadRequest, "User not reachable")
+			c.String(""http.StatusBadRequest, "User not reachable")
 
 		default:
 			c.String(http.StatusBadRequest, "Unexpected Failure")
@@ -199,6 +204,11 @@ func startAPI() {
 func main() {
 
 	token := os.Getenv("DISCORD_BOT_TOKEN")
+
+	if (token == "") {
+		fmt.Println("DISCORD_BOT_TOKEN was not set")
+		return
+	}
 
 	err := startBot(token)
 	if err != nil {
