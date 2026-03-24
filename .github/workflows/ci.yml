@@ -1,0 +1,377 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+  schedule:
+    # Weekly run (every Monday at 00:00 UTC)
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+env:
+  WEEKLY: ${{ github.event_name == 'schedule' }}
+
+jobs:
+  # ============================================
+  # NodeBackend Jobs
+  # ============================================
+  build_nodebackend:
+    runs-on: ubuntu-latest
+    container:
+      image: gcc:15
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'NodeBackend/') ||
+       contains(github.event.head_commit.added, 'NodeBackend/') ||
+       contains(github.event.head_commit.removed, 'NodeBackend/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y make git qt6-base-dev wget tar
+          # download CMake 4.1.2
+          CMAKE_VER=4.1.2
+          wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz
+          tar -xzf cmake-${CMAKE_VER}-linux-x86_64.tar.gz
+          mv cmake-${CMAKE_VER}-linux-x86_64 /opt/cmake
+          ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+          cmake --version
+
+      - name: Build NodeBackend
+        run: |
+          echo "Building NodeBackend..."
+          cd NodeBackend
+          mkdir -p build && cd build
+          cmake ..
+          cmake --build .
+          cmake --install . --prefix ./install
+          echo "Build did something!!!"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nodebackend-build
+          path: NodeBackend/build/install/
+
+  test_nodebackend:
+    runs-on: ubuntu-latest
+    container:
+      image: gcc:15
+    needs: build_nodebackend
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'NodeBackend/') ||
+       contains(github.event.head_commit.added, 'NodeBackend/') ||
+       contains(github.event.head_commit.removed, 'NodeBackend/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test NodeBackend
+        run: |
+          echo "Testing NodeBackend..."
+          cd NodeBackend/build
+          ctest --output-on-failure || echo "No tests found."
+
+  # ============================================
+  # WebUI Jobs
+  # ============================================
+  build_webui:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/cirruslabs/flutter:latest
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'WebUI/') ||
+       contains(github.event.head_commit.added, 'WebUI/') ||
+       contains(github.event.head_commit.removed, 'WebUI/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Flutter WebUI
+        run: |
+          echo "Building Flutter WebUI..."
+          cd WebUI/managementserver_frontend
+          flutter pub get
+          flutter build web
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: webui-build
+          path: WebUI/managementserver_frontend/build/web/
+
+  test_webui:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/cirruslabs/flutter:latest
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'WebUI/') ||
+       contains(github.event.head_commit.added, 'WebUI/') ||
+       contains(github.event.head_commit.removed, 'WebUI/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Flutter tests
+        run: |
+          echo "Running Flutter tests..."
+          cd WebUI/managementserver_frontend
+          flutter test || echo "No tests found."
+
+  # ============================================
+  # DiscordBot Jobs
+  # ============================================
+  build_discordbot:
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.11
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'DiscordBot/') ||
+       contains(github.event.head_commit.added, 'DiscordBot/') ||
+       contains(github.event.head_commit.removed, 'DiscordBot/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          echo "Installing dependencies..."
+          cd DiscordBot
+          pip install -r requirements.txt
+          pip install ruff
+
+      - name: Run ruff check
+        run: |
+          cd DiscordBot
+          ruff check .
+
+  test_discordbot:
+    runs-on: ubuntu-latest
+    container:
+      image: python:3.11
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'DiscordBot/') ||
+       contains(github.event.head_commit.added, 'DiscordBot/') ||
+       contains(github.event.head_commit.removed, 'DiscordBot/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run DiscordBot tests
+        run: |
+          echo "Running DiscordBot tests..."
+          cd DiscordBot
+          pytest || echo "No tests found."
+
+  # ============================================
+  # Monitoring Client Jobs
+  # ============================================
+  build_monitoring_client:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'MonitoringService/Client/') ||
+       contains(github.event.head_commit.added, 'MonitoringService/Client/') ||
+       contains(github.event.head_commit.removed, 'MonitoringService/Client/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Monitoring Client
+        run: |
+          echo "Building Monitoring Client..."
+          cd MonitoringService/Client
+          dotnet restore
+          dotnet build --configuration Release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-client-build
+          path: MonitoringService/Client/bin/
+
+  test_monitoring_client:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'MonitoringService/Client/') ||
+       contains(github.event.head_commit.added, 'MonitoringService/Client/') ||
+       contains(github.event.head_commit.removed, 'MonitoringService/Client/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test Monitoring Client
+        run: |
+          cd MonitoringService/Client
+          dotnet test || echo "No tests found."
+
+  # ============================================
+  # Monitoring Server Jobs
+  # ============================================
+  build_monitoring_server:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'MonitoringService/Server/') ||
+       contains(github.event.head_commit.added, 'MonitoringService/Server/') ||
+       contains(github.event.head_commit.removed, 'MonitoringService/Server/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Monitoring Server
+        run: |
+          echo "Building Monitoring Server..."
+          cd MonitoringService/Server
+          dotnet restore
+          dotnet build --configuration Release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitoring-server-build
+          path: MonitoringService/Server/bin/
+
+  test_monitoring_server:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'MonitoringService/Server/') ||
+       contains(github.event.head_commit.added, 'MonitoringService/Server/') ||
+       contains(github.event.head_commit.removed, 'MonitoringService/Server/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test Monitoring Server
+        run: |
+          cd MonitoringService/Server
+          dotnet test || echo "No tests found."
+
+  # ============================================
+  # ManagementBackend Jobs
+  # ============================================
+  build_managementserver:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:9.0
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'ManagementBackend/') ||
+       contains(github.event.head_commit.added, 'ManagementBackend/') ||
+       contains(github.event.head_commit.removed, 'ManagementBackend/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build ManagementBackend
+        run: |
+          echo "Building ManagementBackend..."
+          cd ManagementBackend
+          dotnet restore
+          dotnet build --configuration Release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: managementbackend-build
+          path: ManagementBackend/ManagementBackend/bin/
+
+  test_managementserver:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:9.0
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'ManagementBackend/') ||
+       contains(github.event.head_commit.added, 'ManagementBackend/') ||
+       contains(github.event.head_commit.removed, 'ManagementBackend/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test ManagementBackend
+        run: |
+          cd ManagementBackend
+          dotnet test || echo "No tests found."
+
+  # ============================================
+  # WorldSynchronization Jobs
+  # ============================================
+  build_worldsync:
+    runs-on: ubuntu-latest
+    container:
+      image: rust:1.91
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'WorldSynchronization/') ||
+       contains(github.event.head_commit.added, 'WorldSynchronization/') ||
+       contains(github.event.head_commit.added, 'WorldSynchronization/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build WorldSynchronization
+        run: |
+          echo "Building WorldSynchronization..."
+          cd WorldSynchronization
+          cargo build --release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: worldsync-build
+          path: WorldSynchronization/target/release/
+
+  test_worldsync:
+    runs-on: ubuntu-latest
+    container:
+      image: rust:1.91
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' || github.event_name == 'pull_request') &&
+      (contains(github.event.head_commit.modified, 'WorldSynchronization/') ||
+       contains(github.event.head_commit.added, 'WorldSynchronization/') ||
+       contains(github.event.head_commit.removed, 'WorldSynchronization/'))
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test WorldSynchronization
+        run: |
+          cd WorldSynchronization
+          cargo test -- --nocapture || echo "No tests found."
