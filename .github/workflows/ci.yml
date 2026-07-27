@@ -80,7 +80,8 @@ jobs:
         run: |
           echo "Testing NodeBackend..."
           cd NodeBackend/build
-          ctest --output-on-failure || echo "No tests found."
+          echo "Deactivated as there are currently no test cases for the NodeBackend"
+          # ctest --output-on-failure || echo "No tests found."
 
   # ============================================
   # WebUI Jobs
